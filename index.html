@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Vaša Sauna - AI asistent & konfigurátor sauny</title>
-<!-- Pasteable verzia: všetky preview obrázky sú vložené priamo v tomto HTML ako WebP data URI. -->
+<!-- Ikonka chatbota je externý súbor vasasauna-fire-icon.png, nie base64. Ostatné obrázky nechávam bezo zmeny. -->
 <script defer src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
@@ -577,6 +577,920 @@ body{margin:0;background:transparent!important;font-family:var(--vs-font)!import
   .vs-icon-btn{width:40px!important;height:40px!important;border-radius:14px!important;}
 }
 
+
+
+/* ===== CHATBOT IKONKA: SYMETRICKÝ OHEŇ V KRUHU ===== */
+
+/* hlavná plávajúca bublina */
+#vasasauna-bubble{
+  width:70px!important;
+  height:70px!important;
+  border-radius:50%!important;
+  background:radial-gradient(circle at 50% 34%,#fff6cc 0%,#ffd36b 26%,#ff812f 58%,#772411 100%)!important;
+  box-shadow:0 16px 36px rgba(255,112,37,.32),0 0 0 8px rgba(255,126,41,.12)!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  overflow:hidden!important;
+}
+
+/* kruhový vnútorný podklad ikonky */
+.vs-bubble-mark,
+.vs-avatar,
+.vs-mini-av{
+  position:relative!important;
+  border-radius:50%!important;
+  background:radial-gradient(circle at 50% 34%,rgba(255,249,218,.96),rgba(255,190,74,.92) 40%,rgba(221,79,25,.9) 74%,rgba(72,22,12,.94) 100%)!important;
+  border:1px solid rgba(255,255,255,.30)!important;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.20),0 8px 18px rgba(116,45,17,.18)!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  overflow:hidden!important;
+}
+
+/* rozmery kruhov */
+.vs-bubble-mark{
+  width:48px!important;
+  height:48px!important;
+  padding:0!important;
+}
+
+.vs-avatar{
+  width:46px!important;
+  height:46px!important;
+  flex:0 0 46px!important;
+  padding:0!important;
+}
+
+.vs-mini-av{
+  width:32px!important;
+  height:32px!important;
+  flex:0 0 32px!important;
+  padding:0!important;
+}
+
+/* skryje pôvodného robota, nemení kontaktné ani ostatné SVG ikony */
+.vs-bubble-mark > svg,
+.vs-avatar .vs-bot-svg,
+.vs-mini-av .vs-bot-svg,
+.vs-bubble-mark .vs-bot-svg,
+.vs-avatar .vs-robot-icon,
+.vs-mini-av .vs-robot-icon,
+.vs-bubble-mark .vs-robot-icon,
+.vs-robot-ant,
+.vs-robot-head,
+.vs-robot-eye,
+.vs-robot-mouth{
+  display:none!important;
+}
+
+/* vonkajší symetrický plameň */
+.vs-bubble-mark::before,
+.vs-avatar::before,
+.vs-mini-av::before{
+  content:"";
+  display:block;
+  width:54%;
+  height:70%;
+  background:linear-gradient(180deg,#fff7ba 0%,#ffd45d 30%,#ff6b24 66%,#ad2b18 100%);
+  clip-path:polygon(
+    50% 0%,
+    64% 20%,
+    76% 38%,
+    83% 58%,
+    76% 80%,
+    62% 96%,
+    50% 100%,
+    38% 96%,
+    24% 80%,
+    17% 58%,
+    24% 38%,
+    36% 20%
+  );
+  border-radius:50% 50% 48% 48% / 62% 62% 38% 38%;
+  box-shadow:0 0 16px rgba(255,119,31,.55);
+}
+
+/* vnútorný svetlý symetrický plameň */
+.vs-bubble-mark::after,
+.vs-avatar::after,
+.vs-mini-av::after{
+  content:"";
+  position:absolute;
+  width:24%;
+  height:38%;
+  background:linear-gradient(180deg,#fffde2 0%,#ffd35e 56%,#ff902e 100%);
+  clip-path:polygon(
+    50% 0%,
+    66% 30%,
+    72% 58%,
+    62% 82%,
+    50% 100%,
+    38% 82%,
+    28% 58%,
+    34% 30%
+  );
+  border-radius:50% 50% 48% 48%;
+  transform:translateY(6px);
+  box-shadow:0 0 10px rgba(255,225,111,.65);
+}
+
+/* jemné zmenšenie plameňa pri malej ikonke v správach */
+.vs-mini-av::before{
+  width:52%;
+  height:66%;
+}
+
+.vs-mini-av::after{
+  width:23%;
+  height:35%;
+  transform:translateY(5px);
+}
+
+/* mobil: nech ostane stále kruh, nie zaoblený štvorec */
+@media (max-width:560px){
+  .vs-avatar,
+  .vs-mini-av,
+  .vs-bubble-mark{
+    border-radius:50%!important;
+  }
+}
+
+
+
+/* ===== FINÁLNY POLISH: reálny oheň v kruhu + lepší chat UI ===== */
+/* Nezasahuje do obrázkov konfigurátora ani do chipov v kalkulačke. */
+
+/* väčší reálny oheň, nie tenký sviečkový plameň */
+#vasasauna-bubble{
+  width:68px!important;
+  height:68px!important;
+  border-radius:50%!important;
+  background:radial-gradient(circle at 50% 42%,#fff1b8 0%,#ffc04a 31%,#f15b24 64%,#6f2111 100%)!important;
+  box-shadow:0 18px 38px rgba(241,91,36,.34),0 0 0 8px rgba(241,91,36,.11)!important;
+  overflow:hidden!important;
+}
+#vasasauna-bubble:hover{
+  transform:translateY(-3px) scale(1.045)!important;
+  box-shadow:0 22px 46px rgba(241,91,36,.42),0 0 0 9px rgba(241,91,36,.13)!important;
+}
+.vs-bubble-mark,
+.vs-avatar,
+.vs-mini-av{
+  position:relative!important;
+  border-radius:50%!important;
+  background:radial-gradient(circle at 50% 42%,#fff8d8 0%,#ffc34d 34%,#eb6425 70%,#48170d 100%)!important;
+  border:1px solid rgba(255,255,255,.34)!important;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.20),0 8px 18px rgba(112,45,18,.18)!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  overflow:hidden!important;
+  color:transparent!important;
+}
+.vs-bubble-mark{width:50px!important;height:50px!important;padding:0!important;}
+.vs-avatar{width:44px!important;height:44px!important;flex:0 0 44px!important;padding:0!important;}
+.vs-mini-av{width:29px!important;height:29px!important;flex:0 0 29px!important;padding:0!important;}
+
+/* skryje starého robota bez zásahu do ostatných ikon v chate */
+.vs-bubble-mark > svg,
+.vs-avatar .vs-bot-svg,
+.vs-mini-av .vs-bot-svg,
+.vs-bubble-mark .vs-bot-svg,
+.vs-avatar .vs-robot-icon,
+.vs-mini-av .vs-robot-icon,
+.vs-bubble-mark .vs-robot-icon,
+.vs-robot-ant,
+.vs-robot-head,
+.vs-robot-eye,
+.vs-robot-mouth{
+  display:none!important;
+}
+
+/* oheň je širší a viac ako plameň/ohnisko, nie sviečka */
+.vs-bubble-mark::before,
+.vs-avatar::before,
+.vs-mini-av::before{
+  content:"🔥"!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  position:absolute!important;
+  left:50%!important;
+  top:50%!important;
+  width:100%!important;
+  height:100%!important;
+  transform:translate(-50%,-49%)!important;
+  font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif!important;
+  line-height:1!important;
+  background:none!important;
+  clip-path:none!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+}
+.vs-bubble-mark::before{font-size:34px!important;}
+.vs-avatar::before{font-size:29px!important;}
+.vs-mini-av::before{font-size:20px!important;}
+.vs-bubble-mark::after,
+.vs-avatar::after,
+.vs-mini-av::after{
+  display:none!important;
+  content:none!important;
+}
+
+/* kompaktnejšia a čistejšia hlavička */
+.vs-header{
+  padding:12px 13px!important;
+  gap:10px!important;
+  background:linear-gradient(135deg,#1b120d 0%,#4b2a18 50%,#b87234 100%)!important;
+  border-bottom:1px solid rgba(255,255,255,.12)!important;
+  box-shadow:0 10px 24px rgba(60,34,19,.18)!important;
+}
+.vs-title{font-size:15px!important;font-weight:850!important;letter-spacing:-.12px!important;}
+.vs-sub{font-size:11.2px!important;color:rgba(255,246,235,.78)!important;}
+.vs-head-actions{gap:6px!important;}
+.vs-icon-btn{
+  width:33px!important;
+  height:33px!important;
+  border-radius:12px!important;
+  background:rgba(255,255,255,.13)!important;
+  border:1px solid rgba(255,255,255,.16)!important;
+}
+
+/* lepší chat priestor */
+.vs-messages{
+  padding:13px 13px 4px!important;
+  gap:9px!important;
+  background:radial-gradient(circle at 12% 0%,rgba(237,182,93,.14),transparent 34%),linear-gradient(180deg,#fffdf8 0%,#fff3e4 100%)!important;
+}
+.vs-row{gap:8px!important;margin:0 0 8px!important;align-items:flex-end!important;}
+.vs-msg{
+  max-width:79%!important;
+  padding:10px 13px!important;
+  border-radius:19px!important;
+  font-size:13.2px!important;
+  line-height:1.48!important;
+  box-shadow:0 8px 18px rgba(43,25,14,.07)!important;
+}
+.vs-msg.bot{
+  background:rgba(255,255,255,.97)!important;
+  border:1px solid rgba(223,199,169,.82)!important;
+  color:#2c211a!important;
+  border-bottom-left-radius:8px!important;
+}
+.vs-msg.user{
+  background:linear-gradient(135deg,#cc8238 0%,#70401f 100%)!important;
+  color:#fff!important;
+  border:1px solid rgba(112,64,31,.12)!important;
+  border-bottom-right-radius:8px!important;
+}
+.vs-typing{padding:0 13px 8px!important;background:#fff3e4!important;}
+.vs-typing-bubble{
+  padding:10px 14px!important;
+  border-radius:16px!important;
+  border-bottom-left-radius:7px!important;
+  background:#fff!important;
+  box-shadow:0 8px 16px rgba(43,25,14,.06)!important;
+}
+
+/* menšie a krajšie tlačidlá volania/kontaktu */
+.vs-contactbar{
+  display:grid!important;
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  gap:7px!important;
+  padding:8px 12px 10px!important;
+  background:linear-gradient(180deg,#fffaf2,#f6ead9)!important;
+  border-top:1px solid rgba(218,190,154,.64)!important;
+}
+.vs-contact{
+  min-width:0!important;
+  min-height:42px!important;
+  padding:6px 5px!important;
+  border-radius:14px!important;
+  gap:5px!important;
+  font-size:10.8px!important;
+  line-height:1.05!important;
+  font-weight:850!important;
+  color:#4b3020!important;
+  background:linear-gradient(180deg,#fffefd,#f4e6d4)!important;
+  border:1px solid rgba(206,166,117,.58)!important;
+  box-shadow:0 6px 14px rgba(60,36,19,.055)!important;
+}
+.vs-contact:hover{
+  transform:translateY(-1px)!important;
+  border-color:#c47a2c!important;
+  box-shadow:0 10px 18px rgba(60,36,19,.09)!important;
+}
+.vs-contact i,
+.vs-contact-ico{
+  width:22px!important;
+  height:22px!important;
+  flex:0 0 22px!important;
+  border-radius:9px!important;
+  background:linear-gradient(135deg,#ffe0ae,#cf7c32)!important;
+  box-shadow:0 5px 10px rgba(207,124,50,.20)!important;
+}
+.vs-contact-ico svg{width:13px!important;height:13px!important;}
+.vs-contact span:last-child{max-width:100%!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;}
+
+/* krajší input, bez ťažkopádneho vzhľadu */
+.vs-inputbar{
+  margin:0 12px 10px!important;
+  padding:7px!important;
+  gap:7px!important;
+  background:rgba(255,255,255,.96)!important;
+  border:1px solid rgba(219,190,154,.82)!important;
+  border-radius:19px!important;
+  box-shadow:0 10px 22px rgba(51,31,18,.075)!important;
+}
+.vs-input{
+  height:40px!important;
+  border:0!important;
+  background:transparent!important;
+  border-radius:14px!important;
+  padding:0 10px!important;
+  font-size:13.5px!important;
+  font-weight:650!important;
+  color:#2d221a!important;
+  box-shadow:none!important;
+}
+.vs-input:focus{box-shadow:none!important;background:transparent!important;}
+.vs-input::placeholder{color:#9a8572!important;}
+.vs-send{
+  width:38px!important;
+  height:38px!important;
+  flex:0 0 38px!important;
+  border-radius:14px!important;
+  background:linear-gradient(135deg,#d88b41,#713c1d)!important;
+  box-shadow:0 9px 16px rgba(113,60,29,.22)!important;
+}
+.vs-send svg{width:16px!important;height:16px!important;}
+
+/* kalkulačku a chipy nechávam pôvodné, iba panel kalkulačky zjemním */
+.vs-calc{
+  background:linear-gradient(180deg,#fbf7f0 0%,#f4ecdf 100%)!important;
+}
+.vs-calc-head{
+  margin-bottom:8px!important;
+}
+.vs-calc-head h3{
+  font-size:15.5px!important;
+}
+
+@media (max-width:560px){
+  #vasasauna-bubble{width:64px!important;height:64px!important;right:14px!important;bottom:14px!important;}
+  .vs-bubble-mark{width:47px!important;height:47px!important;}
+  .vs-bubble-mark::before{font-size:32px!important;}
+  .vs-header{padding:10px 10px!important;gap:8px!important;}
+  .vs-avatar{width:39px!important;height:39px!important;flex:0 0 39px!important;}
+  .vs-avatar::before{font-size:26px!important;}
+  .vs-title{font-size:14.5px!important;max-width:172px!important;}
+  .vs-sub{font-size:10.8px!important;}
+  .vs-icon-btn{width:34px!important;height:34px!important;}
+  .vs-messages{padding:11px 11px 3px!important;}
+  .vs-msg{font-size:12.8px!important;max-width:82%!important;padding:9px 12px!important;}
+  .vs-contactbar{gap:6px!important;padding:7px 9px 9px!important;}
+  .vs-contact{min-height:40px!important;padding:5px 4px!important;font-size:10.2px!important;border-radius:13px!important;}
+  .vs-contact i,.vs-contact-ico{width:20px!important;height:20px!important;flex-basis:20px!important;border-radius:8px!important;}
+  .vs-inputbar{margin:0 10px 9px!important;padding:6px!important;border-radius:18px!important;}
+  .vs-input{height:38px!important;font-size:13px!important;}
+  .vs-send{width:36px!important;height:36px!important;flex-basis:36px!important;}
+}
+
+
+/* ===== FINÁLNY UPDATE: externá ikonka ohňa + uhladený chat, chipy a kontakt ===== */
+/* Ikonka je externý PNG asset: vasasauna-fire-icon.png. Nie je vložená ako base64. */
+
+/* Externý oheň v kruhu */
+#vasasauna-bubble{
+  width:68px!important;
+  height:68px!important;
+  border-radius:50%!important;
+  background:radial-gradient(circle at 50% 42%,#fff1b8 0%,#ffc04a 31%,#f15b24 64%,#6f2111 100%)!important;
+  box-shadow:0 18px 38px rgba(241,91,36,.34),0 0 0 8px rgba(241,91,36,.11)!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  overflow:hidden!important;
+}
+
+#vasasauna-bubble:hover{
+  transform:translateY(-3px) scale(1.045)!important;
+  box-shadow:0 22px 46px rgba(241,91,36,.42),0 0 0 9px rgba(241,91,36,.13)!important;
+}
+
+.vs-bubble-mark,
+.vs-avatar,
+.vs-mini-av{
+  position:relative!important;
+  border-radius:50%!important;
+  background:transparent!important;
+  border:1px solid rgba(255,255,255,.34)!important;
+  box-shadow:0 8px 18px rgba(112,45,18,.18)!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  overflow:hidden!important;
+  padding:0!important;
+  color:transparent!important;
+}
+
+.vs-bubble-mark{
+  width:50px!important;
+  height:50px!important;
+  flex:0 0 50px!important;
+}
+
+.vs-avatar{
+  width:44px!important;
+  height:44px!important;
+  flex:0 0 44px!important;
+}
+
+.vs-mini-av{
+  width:30px!important;
+  height:30px!important;
+  flex:0 0 30px!important;
+}
+
+.vs-fire-icon{
+  display:block!important;
+  width:100%!important;
+  height:100%!important;
+  object-fit:cover!important;
+  object-position:center!important;
+  border-radius:50%!important;
+  pointer-events:none!important;
+}
+
+/* Vypne staré pseudo-plamene/emoji a staré robot prvky, nech zostane len externý obrázok */
+.vs-bubble-mark::before,
+.vs-bubble-mark::after,
+.vs-avatar::before,
+.vs-avatar::after,
+.vs-mini-av::before,
+.vs-mini-av::after{
+  display:none!important;
+  content:none!important;
+}
+
+.vs-bubble-mark > svg,
+.vs-avatar .vs-bot-svg,
+.vs-mini-av .vs-bot-svg,
+.vs-bubble-mark .vs-bot-svg,
+.vs-avatar .vs-robot-icon,
+.vs-mini-av .vs-robot-icon,
+.vs-bubble-mark .vs-robot-icon,
+.vs-robot-ant,
+.vs-robot-head,
+.vs-robot-eye,
+.vs-robot-mouth{
+  display:none!important;
+}
+
+/* Vrch chatbota */
+.vs-header{
+  padding:12px 13px!important;
+  gap:10px!important;
+  background:
+    radial-gradient(circle at 92% -20%,rgba(237,182,93,.38),transparent 38%),
+    linear-gradient(135deg,#1b120d 0%,#4b2a18 52%,#b87234 100%)!important;
+  border-bottom:1px solid rgba(255,255,255,.13)!important;
+  box-shadow:0 10px 24px rgba(60,34,19,.18)!important;
+}
+
+.vs-title{
+  font-size:15px!important;
+  font-weight:880!important;
+  letter-spacing:-.12px!important;
+}
+
+.vs-sub{
+  font-size:11.2px!important;
+  line-height:1.25!important;
+  color:rgba(255,246,235,.80)!important;
+}
+
+.vs-online{
+  width:7px!important;
+  height:7px!important;
+  background:#38D47A!important;
+  box-shadow:0 0 0 5px rgba(56,212,122,.16)!important;
+}
+
+.vs-head-actions{
+  gap:6px!important;
+}
+
+.vs-icon-btn{
+  width:33px!important;
+  height:33px!important;
+  border-radius:12px!important;
+  background:rgba(255,255,255,.13)!important;
+  border:1px solid rgba(255,255,255,.16)!important;
+  color:#fff7ee!important;
+}
+
+.vs-icon-btn:hover{
+  background:rgba(255,255,255,.20)!important;
+  transform:translateY(-1px)!important;
+}
+
+/* Úvodná karta konfigurátora */
+.vs-top{
+  padding:11px 13px 5px!important;
+  background:#fffaf2!important;
+}
+
+.vs-config-cta{
+  border-radius:18px!important;
+  padding:11px 12px!important;
+  grid-template-columns:42px 1fr auto!important;
+  background:linear-gradient(135deg,#fffdf8 0%,#fff3df 58%,#f1d7b2 100%)!important;
+  border:1px solid rgba(196,122,44,.30)!important;
+  box-shadow:0 10px 22px rgba(77,43,20,.08)!important;
+}
+
+.vs-config-ico{
+  width:42px!important;
+  height:42px!important;
+  border-radius:14px!important;
+  background:linear-gradient(135deg,#f7ddb0,#c47a2c)!important;
+  color:#2e180d!important;
+}
+
+.vs-config-title{
+  font-size:13.4px!important;
+  font-weight:880!important;
+}
+
+.vs-config-sub{
+  font-size:11px!important;
+  color:#7a6658!important;
+}
+
+/* Chatové bubliny */
+.vs-messages{
+  padding:13px 13px 4px!important;
+  gap:9px!important;
+  background:
+    radial-gradient(circle at 12% 0%,rgba(237,182,93,.14),transparent 34%),
+    linear-gradient(180deg,#fffdf8 0%,#fff3e4 100%)!important;
+}
+
+.vs-row{
+  gap:8px!important;
+  margin:0 0 8px!important;
+  align-items:flex-end!important;
+}
+
+.vs-msg{
+  max-width:79%!important;
+  padding:10px 13px!important;
+  border-radius:19px!important;
+  font-size:13.2px!important;
+  line-height:1.48!important;
+  box-shadow:0 8px 18px rgba(43,25,14,.07)!important;
+}
+
+.vs-msg.bot{
+  background:rgba(255,255,255,.97)!important;
+  border:1px solid rgba(223,199,169,.82)!important;
+  color:#2c211a!important;
+  border-bottom-left-radius:8px!important;
+}
+
+.vs-msg.user{
+  background:linear-gradient(135deg,#cc8238 0%,#70401f 100%)!important;
+  color:#fff!important;
+  border:1px solid rgba(112,64,31,.12)!important;
+  border-bottom-right-radius:8px!important;
+}
+
+/* Typing */
+.vs-typing{
+  padding:0 13px 8px!important;
+  background:#fff3e4!important;
+}
+
+.vs-typing-bubble{
+  padding:10px 14px!important;
+  border-radius:16px!important;
+  border-bottom-left-radius:7px!important;
+  background:#fff!important;
+  border:1px solid rgba(223,199,169,.82)!important;
+  box-shadow:0 8px 16px rgba(43,25,14,.06)!important;
+}
+
+/* Chatové chipy – iba horné rýchle odpovede, nie karty kalkulačky */
+.vs-chips{
+  padding:0 13px 10px!important;
+  gap:8px!important;
+  background:#fff3e4!important;
+}
+
+.vs-chips .vs-chip{
+  min-height:34px!important;
+  padding:8px 12px!important;
+  border-radius:999px!important;
+  background:linear-gradient(180deg,#fffdf9,#f7ead8)!important;
+  border:1px solid rgba(196,122,44,.28)!important;
+  color:#5a3a26!important;
+  font-size:11.8px!important;
+  font-weight:820!important;
+  box-shadow:0 6px 14px rgba(96,55,25,.06),inset 0 1px 0 rgba(255,255,255,.75)!important;
+  animation:none!important;
+  opacity:1!important;
+  transform:none!important;
+}
+
+.vs-chips .vs-chip:hover{
+  color:#2f190d!important;
+  border-color:#c47a2c!important;
+  background:linear-gradient(180deg,#fff8ee,#efd4ad)!important;
+  box-shadow:0 9px 18px rgba(96,55,25,.10)!important;
+  transform:translateY(-1px)!important;
+}
+
+/* Input */
+.vs-inputbar{
+  margin:0 12px 10px!important;
+  padding:7px!important;
+  gap:7px!important;
+  background:rgba(255,255,255,.96)!important;
+  border:1px solid rgba(219,190,154,.82)!important;
+  border-radius:19px!important;
+  box-shadow:0 10px 22px rgba(51,31,18,.075)!important;
+}
+
+.vs-input{
+  height:40px!important;
+  border:0!important;
+  background:transparent!important;
+  border-radius:14px!important;
+  padding:0 10px!important;
+  font-size:13.5px!important;
+  font-weight:650!important;
+  color:#2d221a!important;
+  box-shadow:none!important;
+}
+
+.vs-input:focus{
+  box-shadow:none!important;
+  background:transparent!important;
+}
+
+.vs-input::placeholder{
+  color:#9a8572!important;
+}
+
+.vs-send{
+  width:38px!important;
+  height:38px!important;
+  flex:0 0 38px!important;
+  border-radius:14px!important;
+  background:linear-gradient(135deg,#d88b41,#713c1d)!important;
+  box-shadow:0 9px 16px rgba(113,60,29,.22)!important;
+}
+
+.vs-send:hover{
+  transform:translateY(-1px)!important;
+}
+
+.vs-send svg{
+  width:16px!important;
+  height:16px!important;
+}
+
+/* Kontaktné veci usporiadané kompaktne ako Webko: malé rovnaké karty v spodnej lište */
+.vs-contactbar{
+  display:grid!important;
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  gap:7px!important;
+  padding:8px 12px 10px!important;
+  background:linear-gradient(180deg,#fffaf2,#f6ead9)!important;
+  border-top:1px solid rgba(218,190,154,.64)!important;
+  order:20!important;
+}
+
+.vs-contact{
+  min-width:0!important;
+  min-height:42px!important;
+  padding:6px 5px!important;
+  border-radius:14px!important;
+  gap:5px!important;
+  font-size:10.8px!important;
+  line-height:1.05!important;
+  font-weight:850!important;
+  color:#4b3020!important;
+  background:linear-gradient(180deg,#fffefd,#f4e6d4)!important;
+  border:1px solid rgba(206,166,117,.58)!important;
+  box-shadow:0 6px 14px rgba(60,36,19,.055)!important;
+}
+
+.vs-contact:hover{
+  transform:translateY(-1px)!important;
+  border-color:#c47a2c!important;
+  box-shadow:0 10px 18px rgba(60,36,19,.09)!important;
+}
+
+.vs-contact i,
+.vs-contact-ico{
+  width:22px!important;
+  height:22px!important;
+  flex:0 0 22px!important;
+  border-radius:9px!important;
+  background:linear-gradient(135deg,#ffe0ae,#cf7c32)!important;
+  color:#2f190d!important;
+  box-shadow:0 5px 10px rgba(207,124,50,.20)!important;
+}
+
+.vs-contact-ico svg{
+  width:13px!important;
+  height:13px!important;
+  fill:#2f190d!important;
+}
+
+.vs-contact span:last-child{
+  max-width:100%!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  white-space:nowrap!important;
+}
+
+/* Kontakt nech ostane dole aj pri otvorenej kalkulačke */
+#vasasauna-chat.calc-open .vs-contactbar{
+  display:grid!important;
+  order:20!important;
+}
+
+#vasasauna-chat.calc-open .vs-calc{
+  order:10!important;
+}
+
+/* Fillout/kontaktný formulár v kalkulačke */
+.vs-contact-form{
+  margin-top:13px!important;
+  padding:12px!important;
+  border-radius:18px!important;
+  background:linear-gradient(180deg,#fffdf8,#f6ead9)!important;
+  border:1px solid rgba(196,122,44,.22)!important;
+  box-shadow:0 10px 22px rgba(51,31,18,.06)!important;
+}
+
+.vs-cform-title{
+  font-size:13.5px!important;
+  font-weight:880!important;
+  color:#2c211a!important;
+  margin-bottom:7px!important;
+}
+
+.vs-cform-row{
+  gap:8px!important;
+}
+
+.vs-cform-inp{
+  min-height:40px!important;
+  padding:10px 12px!important;
+  border-radius:13px!important;
+  border:1px solid rgba(196,122,44,.28)!important;
+  background:#fff!important;
+  color:#2d221a!important;
+  font-size:12.8px!important;
+  font-weight:650!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.8)!important;
+}
+
+.vs-cform-inp:focus{
+  border-color:#c47a2c!important;
+  box-shadow:0 0 0 3px rgba(196,122,44,.12)!important;
+}
+
+textarea.vs-cform-inp{
+  min-height:68px!important;
+}
+
+.vs-gdpr-label{
+  font-size:11px!important;
+  line-height:1.35!important;
+  color:#7a6658!important;
+}
+
+/* Kalkulačku nechávam vo farbách zvyšku widgetu, len ju zjemňujem */
+.vs-calc{
+  background:linear-gradient(180deg,#fbf7f0 0%,#f4ecdf 100%)!important;
+}
+
+.vs-calc-head{
+  margin-bottom:8px!important;
+}
+
+.vs-calc-head h3{
+  font-size:15.5px!important;
+}
+
+@media (max-width:560px){
+  #vasasauna-bubble{
+    width:64px!important;
+    height:64px!important;
+    right:14px!important;
+    bottom:14px!important;
+  }
+
+  .vs-bubble-mark{
+    width:47px!important;
+    height:47px!important;
+    flex-basis:47px!important;
+  }
+
+  .vs-header{
+    padding:10px 10px!important;
+    gap:8px!important;
+  }
+
+  .vs-avatar{
+    width:39px!important;
+    height:39px!important;
+    flex:0 0 39px!important;
+  }
+
+  .vs-title{
+    font-size:14.5px!important;
+    max-width:172px!important;
+  }
+
+  .vs-sub{
+    font-size:10.8px!important;
+  }
+
+  .vs-icon-btn{
+    width:34px!important;
+    height:34px!important;
+  }
+
+  .vs-messages{
+    padding:11px 11px 3px!important;
+  }
+
+  .vs-msg{
+    font-size:12.8px!important;
+    max-width:82%!important;
+    padding:9px 12px!important;
+  }
+
+  .vs-chips{
+    padding:0 10px 9px!important;
+  }
+
+  .vs-chips .vs-chip{
+    min-height:32px!important;
+    padding:7px 10px!important;
+    font-size:11.2px!important;
+  }
+
+  .vs-contactbar{
+    gap:6px!important;
+    padding:7px 9px 9px!important;
+  }
+
+  .vs-contact{
+    min-height:40px!important;
+    padding:5px 4px!important;
+    font-size:10.2px!important;
+    border-radius:13px!important;
+  }
+
+  .vs-contact i,
+  .vs-contact-ico{
+    width:20px!important;
+    height:20px!important;
+    flex-basis:20px!important;
+    border-radius:8px!important;
+  }
+
+  .vs-inputbar{
+    margin:0 10px 9px!important;
+    padding:6px!important;
+    border-radius:18px!important;
+  }
+
+  .vs-input{
+    height:38px!important;
+    font-size:13px!important;
+  }
+
+  .vs-send{
+    width:36px!important;
+    height:36px!important;
+    flex-basis:36px!important;
+  }
+
+  .vs-cform-row{
+    grid-template-columns:1fr!important;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -586,13 +1500,13 @@ body{margin:0;background:transparent!important;font-family:var(--vs-font)!import
 </div>
 
 <button id="vasasauna-bubble" type="button" aria-label="Otvoriť asistenta Vaša Sauna" onclick="VSWidget.toggle()">
-  <span class="vs-bubble-mark"><svg class="vs-bot-svg" viewBox="0 0 64 64" aria-hidden="true" focusable="false"><defs><linearGradient id="vsFlG" x1=".5" y1="0" x2=".5" y2="1"><stop offset="0" stop-color="#fff176"/><stop offset=".45" stop-color="#ff9800"/><stop offset="1" stop-color="#bf360c"/></linearGradient><linearGradient id="vsFlI" x1=".5" y1="0" x2=".5" y2="1"><stop offset="0" stop-color="#fffde7"/><stop offset="1" stop-color="#ffca28"/></linearGradient></defs><path d="M32 5C29 12 17 23 17 33c0 9 5 17 8 21-1-7 2-13 6-17 1 8 4 14 8 17 0-9 5-15 7-17 3 4 7 10 6 17 5-4 8-12 8-21C60 23 35 5 32 5z" fill="url(#vsFlG)"/><path d="M32 25c-3 5-6 10-5 16 1 5 4 8 5 9 1-1 4-4 5-9 1-6-2-11-5-16z" fill="url(#vsFlI)" opacity=".9"/></svg></span>
+  <span class="vs-bubble-mark"><img class="vs-fire-icon" src="vasasauna-fire-icon.png" alt=""></span>
   <span class="vs-dot"></span>
 </button>
 
 <section id="vasasauna-chat" aria-hidden="true">
   <header class="vs-header">
-    <div class="vs-avatar"><svg class="vs-bot-svg" viewBox="0 0 64 64" aria-hidden="true" focusable="false"><defs><linearGradient id="vsFlG" x1=".5" y1="0" x2=".5" y2="1"><stop offset="0" stop-color="#fff176"/><stop offset=".45" stop-color="#ff9800"/><stop offset="1" stop-color="#bf360c"/></linearGradient><linearGradient id="vsFlI" x1=".5" y1="0" x2=".5" y2="1"><stop offset="0" stop-color="#fffde7"/><stop offset="1" stop-color="#ffca28"/></linearGradient></defs><path d="M32 5C29 12 17 23 17 33c0 9 5 17 8 21-1-7 2-13 6-17 1 8 4 14 8 17 0-9 5-15 7-17 3 4 7 10 6 17 5-4 8-12 8-21C60 23 35 5 32 5z" fill="url(#vsFlG)"/><path d="M32 25c-3 5-6 10-5 16 1 5 4 8 5 9 1-1 4-4 5-9 1-6-2-11-5-16z" fill="url(#vsFlI)" opacity=".9"/></svg></div>
+    <div class="vs-avatar"><img class="vs-fire-icon" src="vasasauna-fire-icon.png" alt=""></div>
     <div class="vs-head-text">
       <div class="vs-title">AI asistent Vaša Sauna</div>
       <div class="vs-sub"><span class="vs-online"></span>Online · pomôže s výberom aj cenou</div>
@@ -614,7 +1528,7 @@ body{margin:0;background:transparent!important;font-family:var(--vs-font)!import
   <div id="vs-messages" class="vs-messages"></div>
 
   <div id="vs-typing" class="vs-typing">
-    <span class="vs-mini-av"><svg class="vs-bot-svg" viewBox="0 0 64 64" aria-hidden="true" focusable="false"><defs><linearGradient id="vsFlG" x1=".5" y1="0" x2=".5" y2="1"><stop offset="0" stop-color="#fff176"/><stop offset=".45" stop-color="#ff9800"/><stop offset="1" stop-color="#bf360c"/></linearGradient><linearGradient id="vsFlI" x1=".5" y1="0" x2=".5" y2="1"><stop offset="0" stop-color="#fffde7"/><stop offset="1" stop-color="#ffca28"/></linearGradient></defs><path d="M32 5C29 12 17 23 17 33c0 9 5 17 8 21-1-7 2-13 6-17 1 8 4 14 8 17 0-9 5-15 7-17 3 4 7 10 6 17 5-4 8-12 8-21C60 23 35 5 32 5z" fill="url(#vsFlG)"/><path d="M32 25c-3 5-6 10-5 16 1 5 4 8 5 9 1-1 4-4 5-9 1-6-2-11-5-16z" fill="url(#vsFlI)" opacity=".9"/></svg></span>
+    <span class="vs-mini-av"><img class="vs-fire-icon" src="vasasauna-fire-icon.png" alt=""></span>
     <span class="vs-typing-bubble"><span></span><span></span><span></span></span>
   </div>
 
@@ -779,7 +1693,7 @@ body{margin:0;background:transparent!important;font-family:var(--vs-font)!import
   }
 
   function botIcon(){
-    return '<svg class="vs-bot-svg" viewBox="0 0 64 64" aria-hidden="true" focusable="false"><defs><linearGradient id="vsFlG" x1=".5" y1="0" x2=".5" y2="1"><stop offset="0" stop-color="#fff176"/><stop offset=".45" stop-color="#ff9800"/><stop offset="1" stop-color="#bf360c"/></linearGradient><linearGradient id="vsFlI" x1=".5" y1="0" x2=".5" y2="1"><stop offset="0" stop-color="#fffde7"/><stop offset="1" stop-color="#ffca28"/></linearGradient></defs><path d="M32 5C29 12 17 23 17 33c0 9 5 17 8 21-1-7 2-13 6-17 1 8 4 14 8 17 0-9 5-15 7-17 3 4 7 10 6 17 5-4 8-12 8-21C60 23 35 5 32 5z" fill="url(#vsFlG)"/><path d="M32 25c-3 5-6 10-5 16 1 5 4 8 5 9 1-1 4-4 5-9 1-6-2-11-5-16z" fill="url(#vsFlI)" opacity=".9"/></svg>';
+    return '<img class="vs-fire-icon" src="vasasauna-fire-icon.png" alt="">';
   }
   function addMsg(html, who='bot'){
     const row = document.createElement('div');
