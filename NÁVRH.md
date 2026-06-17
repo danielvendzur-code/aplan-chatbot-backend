@@ -48,6 +48,36 @@ ponúkne checklist, správu na úrad, balík aj rezerváciu.
 
 ---
 
+## 2b) Vedomostná báza — čo všetko klient nájde
+
+Asistent obsahuje **prehľadávateľnú vedomostnú bázu** (~38 tém v 5 oblastiach).
+Klient ju nájde troma spôsobmi: **napíše do poľa** (napr. „prístavba",
+„kolaudácia", „územný plán", „cena"), **prejde si oblasti** cez „Témy a otázky",
+alebo cez **súvisiace témy** pod každou odpoveďou (krížové prepojenia). Každá téma
+je krátko a zrozumiteľne vysvetlená a vždy ponúka ďalší krok (checklist, správa na
+úrad, kalendár, balík, dopyt).
+
+- **Služby a typy projektov:** rodinný dom (novostavba), rekonštrukcia, prístavba
+  a nadstavba, drobné stavby (garáž/altánok/prístrešok/plot/bazén), dodatočná
+  legalizácia, zmena účelu užívania, architektonická štúdia, stupne dokumentácie,
+  profesie, energetika, prípojky, interiér, typový vs. individuálny projekt.
+- **Postupy krok za krokom:** ako začať od nuly, pred kúpou pozemku, stavebné
+  povolenie, ohlásenie, rekonštrukcia, legalizácia, kolaudácia.
+- **Pojmy a skratky (glosár):** územný plán a regulatívy, index zastavanosti a
+  koeficient zelene, odstupové vzdialenosti, list vlastníctva, katastrálna mapa a
+  parcelné číslo, územnoplánovacia informácia, povolenie vs. ohlásenie, dotknuté
+  orgány, DÚR/DSP/DRS, stavebný dozor.
+- **Časté otázky:** ako dlho trvá projekt, koľko stojí, čo obsahuje, stavba
+  svojpomocou, „vybavíte mi úrady?" (jasná hranica role Aplanu), aké podklady
+  treba, kde pôsobíte, zmeny počas projektu.
+- **Dokumenty a checklisty:** interaktívny odškrtávací zoznam podľa typu prípadu.
+
+Báza je v `index.html` jedno dátové pole (`KB`) — **ľahko spravovateľná a
+rozšíriteľná**, pripravená na neskoršie napojenie na reálne AI odpovede nad
+obsahom webu Aplan.
+
+---
+
 ## 3) Používateľské flow
 
 **Vstup:** teaser bublina po ~2,6 s → *„Neviete, čo potrebujete k projektu alebo
