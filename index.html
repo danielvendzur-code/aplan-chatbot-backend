@@ -136,6 +136,16 @@ body.ai-locked{overflow:hidden;position:fixed;width:100%}
 .panel-h .pin{width:8px;height:8px;border-radius:2px;background:var(--accent)}
 .panel-b{padding:13px}
 
+/* prehliadač oblastí (KB) */
+.kbcat{display:flex;align-items:center;gap:11px;width:100%;text-align:left;border:1px solid var(--line);background:var(--soft-2);border-radius:12px;padding:11px 12px;margin-bottom:8px;cursor:pointer;transition:all .15s;font-family:var(--font)}
+.kbcat:last-child{margin-bottom:0}
+.kbcat:hover{border-color:var(--accent);background:var(--accent-soft)}
+.kbcat .ic{width:18px;height:18px;color:var(--accent-2);flex:0 0 auto}
+.kbcat>div{flex:1;min-width:0}
+.kbcat .kt{font:800 13px var(--font);color:var(--ink)}
+.kbcat .kd{font:600 11px var(--font);color:var(--muted);margin-top:1px}
+.kbcat>svg:last-child{width:16px;height:16px;color:var(--muted-2);flex:0 0 auto}
+
 /* checklist */
 .check{display:flex;gap:10px;padding:9px 0;border-bottom:1px dashed var(--line)}
 .check:last-child{border-bottom:0}
@@ -282,7 +292,7 @@ body.ai-locked{overflow:hidden;position:fixed;width:100%}
   <div class="ai-body" id="ai-body"></div>
   <div class="ai-quick" id="ai-quick"></div>
   <div class="ai-compose">
-    <input id="ai-input" placeholder="Napíšte správu…" autocomplete="off">
+    <input id="ai-input" placeholder="Hľadajte tému alebo sa spýtajte…" autocomplete="off">
     <button class="send" onclick="aiUserSend()" aria-label="Odoslať">
       <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
     </button>
@@ -325,7 +335,10 @@ const I = {
   send  :'<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2 11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>',
   phone :'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3-8.6A2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></svg>',
   wa    :'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15l-1.3 4.7 4.8-1.3A10 10 0 1 0 12 2zm5.5 14c-.2.6-1.2 1.1-1.7 1.2-.5.1-1 .1-1.7-.1-.4-.1-.9-.3-1.6-.6-2.8-1.2-4.6-4-4.7-4.2-.1-.2-1.1-1.5-1.1-2.8 0-1.3.7-2 .9-2.2.2-.2.5-.3.7-.3h.5c.2 0 .4 0 .6.5l.7 1.7c.1.2.1.3 0 .5l-.4.5c-.1.2-.3.3-.1.6.1.2.6 1 1.3 1.6.9.8 1.6 1 1.8 1.1.2.1.4.1.5-.1l.6-.7c.2-.2.3-.2.6-.1l1.6.8c.2.1.4.2.5.3.1.1.1.6-.1 1.1z"/></svg>',
-  chk   :'<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>'
+  chk   :'<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>',
+  book  :'<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M19 3v18"/></svg>',
+  faq   :'<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 0 1 5 .3c0 1.7-2.5 2-2.5 3.7M12 17h.01"/></svg>',
+  arrow :'<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>'
 };
 
 /* ——— jadro konverzácie ——— */
@@ -372,13 +385,14 @@ function aiClose(){
 
 /* ——— úvod ——— */
 function welcome(){
-  botMsg('Dobrý deň, som <b>Aplan AI asistent</b>. Pomôžem vám zistiť, aký typ projektu alebo podkladov môžete potrebovať, pripravím vám checklist dokumentov, pomôžem s textom správy na obec alebo stavebný úrad a môžete si tu predbežne vybrať termín konzultácie.<span class="mini">Aplan je projektová kancelária — úrady nevybavujeme za vás, ale pripravíme projekt a podklady a vysvetlíme postup.</span>');
+  botMsg('Dobrý deň, som <b>Aplan AI asistent</b>. Pomôžem vám zistiť, aký typ projektu alebo podkladov môžete potrebovať, vysvetlím pojmy a postupy, pripravím checklist dokumentov aj text správy na obec či stavebný úrad a môžete si tu predbežne vybrať termín konzultácie.<span class="mini">Tip: dole môžete rovno napísať, čo hľadáte — napr. „prístavba", „kolaudácia", „územný plán" či „cena". Aplan je projektová kancelária — úrady nevybavujeme za vás, ale pripravíme projekt a podklady a vysvetlíme postup.</span>');
   setTimeout(()=>renderQuick(),300);
   setTimeout(()=>menu(),520);
 }
 function menu(){
   botMsg('Kde chcete začať?');
   chipRow([
+    {t:'Prehľadať témy a otázky',ic:I.book,primary:true,fn:flowKB},
     {t:'Zistiť, čo potrebujem',ic:I.search,primary:true,fn:flowNeed},
     {t:'Chcem nový projekt domu',fn:()=>quickIntent('nový rodinný dom')},
     {t:'Potrebujem riešiť povolenie',ic:I.steps,fn:flowSteps},
@@ -396,6 +410,7 @@ function backMenu(){ setTimeout(()=>chipRow([{t:'↩ Späť na hlavné menu',fn:
 function renderQuick(){
   const q=document.getElementById('ai-quick');
   const acts=[
+    {t:'Témy a otázky',svg:I.book,fn:flowKB},
     {t:'Zavolať',svg:I.phone,fn:()=>botMsg('Telefón na Aplan: <b>+421 900 000 000</b><span class="mini">Demo číslo — v reálnej verzii sa otvorí telefón klienta.</span>')},
     {t:'E-mail',svg:I.mail,fn:()=>botMsg('Napíšte nám na <b>info@aplan.sk</b><span class="mini">Demo — v ostrej verzii otvorí poštového klienta.</span>')},
     {t:'WhatsApp',svg:I.wa,fn:()=>botMsg('WhatsApp: <b>+421 900 000 000</b><span class="mini">Demo odkaz — neskôr napojiteľný na wa.me.</span>')},
@@ -784,21 +799,220 @@ function flowLead(){
   },1000);
 }
 
-/* ============ jednoduchý "free text" — scenárovaná odpoveď ============ */
+/* =========================================================
+   VEDOMOSTNÁ BÁZA — kompletný rozbor toho, čo môže klient
+   hľadať. Dáta sú v jednom poli (ľahko spravovateľné a
+   rozšíriteľné). Každá téma: kategória, názov, kľúčové slová,
+   vysvetlenie a súvisiace akcie/témy.
+   ========================================================= */
+const CATS=[
+  {id:'sluzby',   t:'Služby a typy projektov', d:'Čo vieme spracovať',        ic:I.pkg},
+  {id:'postup',   t:'Postupy krok za krokom',  d:'Ako na to, v bodoch',       ic:I.steps},
+  {id:'pojmy',    t:'Pojmy a skratky',         d:'Čo znamená…',               ic:I.book},
+  {id:'faq',      t:'Časté otázky',            d:'Rýchle, jasné odpovede',    ic:I.faq},
+  {id:'dokumenty',t:'Dokumenty a checklisty',  d:'Čo si pripraviť',           ic:I.list}
+];
+
+const KB=[
+/* ——— SLUŽBY / TYPY PROJEKTOV ——— */
+{id:'rd',cat:'sluzby',title:'Projekt rodinného domu (novostavba)',tags:'rodinný dom novostavba projekt domu stavať dom rd bungalov poschodový',
+ body:'Spracujeme projektovú dokumentáciu novostavby rodinného domu — od osadenia na pozemok cez dispozíciu až po podklady pre stavebné povolenie a realizáciu. Súčasťou býva architektonicko-stavebná časť a podľa potreby profesie (statika, elektro, voda, kúrenie, energetika).<span class="mini">Rozsah a obsah vždy prispôsobíme vášmu pozemku a regulatívom obce.</span>',
+ rel:['act:need','topic:stupne','topic:profesie','act:cal']},
+{id:'rekon',cat:'sluzby',title:'Projekt rekonštrukcie',tags:'rekonštrukcia obnova prerábka prerobiť starý dom byt modernizácia',
+ body:'Pri rekonštrukcii navrhneme zmeny dispozície, konštrukčné riešenia a podklady podľa rozsahu zásahu. Ak ide o zásah do nosných konštrukcií alebo vonkajšieho vzhľadu, býva potrebné ohlásenie alebo stavebné povolenie.<span class="mini">Veľmi pomôže pôvodná projektová dokumentácia, ak ju máte.</span>',
+ rel:['topic:povolenie-vs-ohlaska','act:checklist','act:cal']},
+{id:'pristavba',cat:'sluzby',title:'Prístavba a nadstavba',tags:'prístavba nadstavba rozšírenie domu pristavať poschodie zväčšiť dom',
+ body:'Prístavba (rozšírenie do strán) aj nadstavba (nadstavanie ďalšieho podlažia) sú zásahom do existujúcej stavby — typicky vyžadujú projekt a stavebné povolenie. Posudzuje sa statika, napojenie na pôvodnú stavbu aj dodržanie regulatívov.<span class="mini">Orientačne — presný režim závisí od rozsahu a od stavebného úradu.</span>',
+ rel:['topic:zastavanost','topic:odstupy','act:need','act:cal']},
+{id:'drobne',cat:'sluzby',title:'Drobné a menšie stavby (garáž, altánok, prístrešok, plot, bazén)',tags:'garáž altánok prístrešok plot bazén drobná stavba kôlňa sklad pergola',
+ body:'Pri menších stavbách často postačuje jednoduchšia dokumentácia a ohlásenie, no závisí to od veľkosti, umiestnenia a miestnych pravidiel. Pripravíme primeraný rozsah podkladov.<span class="mini">Či ide o „drobnú stavbu" a aký režim platí, odporúčame overiť na stavebnom úrade.</span>',
+ rel:['topic:povolenie-vs-ohlaska','topic:ohlaska','act:letter']},
+{id:'legalizacia',cat:'sluzby',title:'Dodatočná legalizácia stavby',tags:'legalizácia načierno dodatočné povolenie nepovolená stavba dodatočná legalizácia',
+ body:'Pri stavbe, ktorá nemá povolenie, je zvyčajne potrebné zameranie skutočného stavu a dodatočná dokumentácia pre dodatočné konanie. Býva to náročnejší prípad závislý od konkrétnej situácie a úradu.<span class="mini">Pripravíme dokumentáciu a podklady; samotné konanie vediete s úradom vy.</span>',
+ rel:['topic:postup-legalizacia','act:checklist','act:cal']},
+{id:'zmena-ucelu',cat:'sluzby',title:'Zmena účelu užívania',tags:'zmena účelu užívania prevádzka z bytu kancelária prevádzkáreň zmena využitia',
+ body:'Ak chcete priestor využívať inak, než na čo bol skolaudovaný (napr. byt na prevádzku), býva potrebná dokumentácia a súhlas úradu. Posudzujú sa hygienické, požiarne a iné požiadavky.<span class="mini">Pripravíme podklady; rozsah závisí od nového účelu.</span>',
+ rel:['act:cal','act:lead']},
+{id:'studia',cat:'sluzby',title:'Architektonická štúdia',tags:'štúdia architektonická štúdia návrh vizualizácia idea koncept',
+ body:'Štúdia je úvodný návrh — overí dispozíciu, hmotu a osadenie ešte pred detailným projektom. Je ideálna, keď ladíte predstavu alebo overujete možnosti pozemku.<span class="mini">Na štúdiu zvyčajne nadväzuje dokumentácia pre povolenie a realizáciu.</span>',
+ rel:['topic:stupne','act:cal']},
+{id:'stupne',cat:'sluzby',title:'Stupne projektovej dokumentácie',tags:'stupne dokumentácie štúdia dur dsp drs realizačný projekt rozsah projektu',
+ body:'Dokumentácia má zvyčajne niekoľko stupňov:<ul><li><b>Štúdia</b> — úvodný návrh a koncept.</li><li><b>DÚR</b> — pre územné rozhodnutie (osadenie, vzťahy k okoliu).</li><li><b>DSP</b> — pre stavebné povolenie.</li><li><b>DRS</b> — realizačná dokumentácia pre samotnú stavbu.</li></ul><span class="mini">Nie každý projekt potrebuje všetky stupne — záleží od typu a rozsahu.</span>',
+ rel:['topic:dur-dsp-drs','topic:profesie','act:cal']},
+{id:'profesie',cat:'sluzby',title:'Profesie v projekte (statika, elektro, voda, kúrenie…)',tags:'profesie statika elektro zdravotechnika zti kúrenie vykurovanie vzduchotechnika energetika',
+ body:'Podľa rozsahu projekt koordinuje viaceré profesie: architektonicko-stavebná časť, statika, elektroinštalácie, zdravotechnika (voda a kanalizácia), vykurovanie, prípadne vzduchotechnika a energetické hodnotenie.<span class="mini">Ktoré profesie sú potrebné, závisí od konkrétnej stavby.</span>',
+ rel:['topic:energetika','topic:pripojky','act:cal']},
+{id:'energetika',cat:'sluzby',title:'Energetické hodnotenie a certifikát',tags:'energetika energetický certifikát hodnotenie spotreba úspora a0 nízkoenergetický pasívny',
+ body:'Projektové energetické hodnotenie posudzuje energetickú hospodárnosť budovy a býva súčasťou dokumentácie novostavby. Energetický certifikát sa zvyčajne dokladá ku kolaudácii.<span class="mini">Orientačne — požiadavky závisia od typu a roku výstavby.</span>',
+ rel:['topic:kolaudacia','act:cal']},
+{id:'pripojky',cat:'sluzby',title:'Projekt prípojok (voda, kanalizácia, elektrina, plyn)',tags:'prípojky voda kanalizácia elektrina plyn napojenie siete studňa žumpa čov',
+ body:'K stavbe patrí aj napojenie na inžinierske siete. Pripravíme podklady k prípojkám podľa dostupnosti sietí a podmienok ich správcov.<span class="mini">Vyjadrenia správcov sietí si zvyčajne zabezpečuje stavebník.</span>',
+ rel:['topic:dotknute-organy','act:checklist']},
+{id:'interier',cat:'sluzby',title:'Návrh interiéru',tags:'interiér dizajn interiéru zariadenie nábytok vizualizácia interiéru',
+ body:'Okrem stavebnej časti vieme riešiť aj návrh interiéru — dispozičné riešenie, materiály a atmosféru priestoru.<span class="mini">Rozsah dohodneme podľa vašich predstáv.</span>',
+ rel:['act:cal','act:lead']},
+{id:'typovy',cat:'sluzby',title:'Typový vs. individuálny projekt',tags:'typový projekt individuálny katalógový projekt rozdiel ktorý vybrať',
+ body:'<b>Typový (katalógový)</b> projekt je hotový návrh, ktorý sa osadí na pozemok a doplní o osadenie a prípojky — býva rýchlejší a lacnejší. <b>Individuálny</b> projekt sa robí na mieru pozemku a vašim potrebám.<span class="mini">Aj typový projekt treba osadiť a prispôsobiť konkrétnemu pozemku.</span>',
+ rel:['act:need','act:cal']},
+
+/* ——— POSTUPY ——— */
+{id:'postup-od-nuly',cat:'postup',title:'Idem stavať dom — ako začať od nuly',tags:'ako začať stavať dom od nuly prvé kroky neviem kde začať postup stavby',
+ body:'Orientačný štart:<ul><li>1 · Ujasnite si pozemok (alebo jeho kúpu) a rozpočtovú predstavu.</li><li>2 · Na obci overte územný plán a regulatívy.</li><li>3 · Konzultácia s projektantom — čo je možné a aký rozsah projektu.</li><li>4 · Štúdia / návrh a následne dokumentácia pre povolenie.</li><li>5 · Vyjadrenia, podanie na úrad, realizácia, kolaudácia.</li></ul>',
+ rel:['act:pkg','act:need','topic:postup-pozemok','act:cal']},
+{id:'postup-pozemok',cat:'postup',title:'Pred kúpou pozemku — čo overiť',tags:'kúpa pozemku pozemok pred kúpou overiť stavebný pozemok parcela orná pôda',
+ body:'Pred kúpou odporúčame overiť:<ul><li>či je pozemok podľa <b>územného plánu</b> určený na výstavbu,</li><li>regulatívy (zastavanosť, odstupy, výška, tvar strechy),</li><li>prístupovú cestu a dostupnosť sietí,</li><li>vlastnícke vzťahy a vecné bremená v liste vlastníctva.</li></ul><span class="mini">Vieme pripraviť úvodné posúdenie možností pozemku.</span>',
+ rel:['topic:upi','topic:lv','act:letter','act:cal']},
+{id:'postup-povolenie',cat:'postup',title:'Postup pri stavebnom povolení',tags:'stavebné povolenie postup ako vybaviť povolenie kroky konanie',
+ body:'Krokový postup vám prejde asistent — od informácií o pozemku, cez overenie možností a projekt, až po vyjadrenia a podanie na úrad.',
+ rel:['act:steps','act:checklist','act:letter']},
+{id:'ohlaska',cat:'postup',title:'Ohlásenie (drobnej) stavby — postup',tags:'ohláška ohlásenie drobná stavba postup čo treba k ohláseniu',
+ body:'Pri ohlásení sa úradu oznámi zámer s prílohami a počká sa na jeho stanovisko. Postačuje pri menších stavbách a niektorých úpravách — záleží od miestnych pravidiel.<span class="mini">Či stačí ohlásenie alebo treba povolenie, je vhodné overiť na úrade.</span>',
+ rel:['topic:povolenie-vs-ohlaska','act:letter']},
+{id:'postup-rekon',cat:'postup',title:'Postup pri rekonštrukcii',tags:'rekonštrukcia postup ako na rekonštrukciu kroky obnova',
+ body:'Orientačne: zameranie a posúdenie pôvodného stavu → návrh zmien → dokumentácia v primeranom rozsahu → podľa zásahu ohlásenie alebo povolenie → realizácia.<span class="mini">Zásah do nosných konštrukcií zvyčajne vyžaduje projekt a súhlas úradu.</span>',
+ rel:['topic:rekon','act:checklist','act:cal']},
+{id:'postup-legalizacia',cat:'postup',title:'Postup pri dodatočnej legalizácii',tags:'legalizácia postup ako legalizovať dodatočné konanie zameranie',
+ body:'Orientačne: zameranie skutočného stavu → dodatočná projektová dokumentácia → potrebné vyjadrenia → dodatočné konanie na úrade.<span class="mini">Ide o náročnejší prípad; výsledok závisí od konkrétnej situácie a úradu.</span>',
+ rel:['topic:legalizacia','act:checklist','act:cal']},
+{id:'kolaudacia',cat:'postup',title:'Kolaudácia — čo to je a kedy',tags:'kolaudácia kolaudovať dokončenie stavby užívanie skolaudovať',
+ body:'Kolaudácia je proces, ktorým úrad povolí stavbu užívať po jej dokončení. Dokladajú sa pri nej napr. revízie, energetický certifikát či geometrický plán.<span class="mini">Presný zoznam dokladov určuje stavebný úrad.</span>',
+ rel:['topic:energetika','act:checklist']},
+
+/* ——— POJMY / GLOSÁR ——— */
+{id:'uzemny-plan',cat:'pojmy',title:'Územný plán a regulatívy',tags:'územný plán regulatívy čo môžem stavať funkčné využitie zóna',
+ body:'Územný plán obce určuje, ako sa dá pozemok využiť a aké pravidlá (regulatívy) platia — napr. typ zástavby, výška, odstupy či zastavanosť. Je to prvá vec, ktorú treba overiť pred projektom.',
+ rel:['topic:upi','topic:zastavanost','act:letter']},
+{id:'zastavanost',cat:'pojmy',title:'Index zastavanosti a koeficient zelene',tags:'zastavanosť index zastavanosti koeficient zelene koľko môžem zastavať plocha',
+ body:'<b>Index zastavanosti</b> hovorí, akú časť pozemku smiete zastavať. <b>Koeficient zelene</b> určuje, koľko plochy musí zostať zelenej. Obe ovplyvňujú veľkosť domu, ktorý je na pozemku možný.',
+ rel:['topic:uzemny-plan','topic:odstupy','act:cal']},
+{id:'odstupy',cat:'pojmy',title:'Odstupové vzdialenosti',tags:'odstupy odstupové vzdialenosti od hranice od suseda vzdialenosť stavby',
+ body:'Odstupy sú minimálne vzdialenosti stavby od hraníc pozemku a od susedných stavieb. Ovplyvňujú umiestnenie a veľkosť domu a posudzujú sa pri povoľovaní.<span class="mini">Konkrétne hodnoty závisia od situácie a miestnych pravidiel.</span>',
+ rel:['topic:zastavanost','act:cal']},
+{id:'lv',cat:'pojmy',title:'List vlastníctva (LV)',tags:'list vlastníctva lv kto vlastník bremená ťarchy doklad o vlastníctve',
+ body:'List vlastníctva preukazuje, kto je vlastníkom pozemku alebo stavby, a obsahuje aj ťarchy či vecné bremená. Je základným podkladom k projektu aj ku konaniu.',
+ rel:['topic:kataster','act:checklist']},
+{id:'kataster',cat:'pojmy',title:'Katastrálna mapa a parcelné číslo',tags:'kataster katastrálna mapa parcelné číslo parcela tvar pozemku zbgis',
+ body:'Katastrálna mapa zobrazuje tvar, polohu a hranice parcely a susedné pozemky. Parcelné číslo pozemok jednoznačne identifikuje — budete ho potrebovať pri každej komunikácii o pozemku.',
+ rel:['topic:lv','act:letter']},
+{id:'upi',cat:'pojmy',title:'Územnoplánovacia informácia (ÚPI)',tags:'územnoplánovacia informácia upi informácia z obce čo sa dá stavať vyjadrenie obce',
+ body:'ÚPI je informácia z obce o tom, či a ako sa dá na konkrétnom pozemku stavať podľa územného plánu. Je to dobrý prvý krok pred kúpou pozemku aj pred projektom.<span class="mini">Vieme vám pripraviť text žiadosti na obec.</span>',
+ rel:['act:letter','topic:uzemny-plan','act:cal']},
+{id:'povolenie-vs-ohlaska',cat:'pojmy',title:'Stavebné povolenie vs. ohlásenie',tags:'povolenie alebo ohláška rozdiel stačí ohlásenie kedy povolenie',
+ body:'<b>Ohlásenie</b> je jednoduchší režim pre menšie stavby a úpravy. <b>Stavebné povolenie</b> sa vyžaduje pri väčších a zložitejších stavbách. Ktorý režim platí pre váš zámer, závisí od jeho rozsahu a miestnych pravidiel.<span class="mini">Vieme pripraviť otázku na úrad, ktorá to ujasní.</span>',
+ rel:['act:letter','topic:ohlaska','act:need']},
+{id:'dotknute-organy',cat:'pojmy',title:'Dotknuté orgány a vyjadrenia',tags:'dotknuté orgány vyjadrenia správcovia sietí stanoviská úrady životné prostredie',
+ body:'Pri konaní môžu byť potrebné vyjadrenia rôznych inštitúcií — správcov sietí, obce, životného prostredia či dopravného úradu. Ktoré presne, závisí od typu stavby a lokality.<span class="mini">Vyjadrenia si zvyčajne zabezpečuje stavebník; my pripravíme podklady.</span>',
+ rel:['topic:pripojky','act:checklist']},
+{id:'dur-dsp-drs',cat:'pojmy',title:'Skratky DÚR, DSP, DRS',tags:'dur dsp drs skratky čo znamená dokumentácia pre územné rozhodnutie',
+ body:'<b>DÚR</b> — dokumentácia pre územné rozhodnutie. <b>DSP</b> — dokumentácia pre stavebné povolenie. <b>DRS</b> — dokumentácia pre realizáciu stavby.<span class="mini">Ktoré stupne potrebujete, závisí od typu zámeru.</span>',
+ rel:['topic:stupne','act:cal']},
+{id:'dozor',cat:'pojmy',title:'Stavebný dozor',tags:'stavebný dozor dozor svojpomocne kontrola stavby odborné vedenie',
+ body:'Stavebný dozor je odborná osoba, ktorá dohliada na priebeh stavby. Pri stavbe svojpomocou býva potrebný.<span class="mini">Ide o samostatnú rolu od projektanta.</span>',
+ rel:['topic:svojpomoc','act:cal']},
+
+/* ——— ČASTÉ OTÁZKY ——— */
+{id:'trvanie',cat:'faq',title:'Ako dlho trvá vypracovanie projektu?',tags:'ako dlho trvá projekt termín čas trvanie kedy hotové',
+ body:'Závisí od typu a rozsahu — štúdia býva rýchlejšia, kompletná dokumentácia pre povolenie trvá dlhšie kvôli koordinácii profesií. <b>Orientačný</b> termín radi povieme po krátkej konzultácii a po posúdení podkladov.',
+ rel:['act:cal','act:lead']},
+{id:'cena',cat:'faq',title:'Koľko stojí projekt?',tags:'cena koľko stojí cenník cenová ponuka náklady projekt rozpočet',
+ body:'Presnú cenu vopred nesľubujeme — závisí od typu stavby, rozsahu projektu, lokality, stavu dokumentov, potreby profesií a vyjadrení. <b>Orientačne</b> vieme ukázať náročnosť prípadu a pripraviť cenovú ponuku po konzultácii.',
+ rel:['act:need','act:cal','act:lead']},
+{id:'obsah',cat:'faq',title:'Čo všetko projekt obsahuje?',tags:'čo obsahuje projekt rozsah projektu čo dostanem výkresy',
+ body:'Projekt zvyčajne obsahuje architektonicko-stavebnú časť (situácia, pôdorysy, rezy, pohľady, technická správa) a podľa potreby profesie — statiku, elektro, zdravotechniku, kúrenie a energetické hodnotenie.<span class="mini">Konkrétny rozsah prispôsobíme zámeru.</span>',
+ rel:['topic:profesie','topic:stupne']},
+{id:'svojpomoc',cat:'faq',title:'Môžem stavať svojpomocne?',tags:'svojpomocne svojpomoc sám staviam vlastnými silami dozor',
+ body:'Pri mnohých rodinných domoch je stavba svojpomocou možná, no zvyčajne sa vyžaduje stavebný dozor. Projekt a podklady pripravíme tak, aby ste mali jasné zadanie.<span class="mini">Podmienky závisia od konkrétnej stavby a úradu.</span>',
+ rel:['topic:dozor','act:cal']},
+{id:'urady',cat:'faq',title:'Vybavíte mi úrady a povolenie?',tags:'vybavíte úrady povolenie za mňa inžiniering zastúpenie na úrade',
+ body:'Aplan je <b>projektová kancelária</b> — pripravíme projektovú dokumentáciu a odborné podklady a vysvetlíme postup. Komunikáciu a podania na úrade si vediete vy (alebo podľa dohody s odborníkom).<span class="mini">Asistent vám k tomu pripraví texty a checklisty.</span>',
+ rel:['act:letter','act:steps','act:checklist']},
+{id:'podklady',cat:'faq',title:'Aké podklady od vás potrebujem?',tags:'aké podklady potrebujem čo mám priniesť dokumenty od klienta',
+ body:'Najčastejšie: list vlastníctva, katastrálnu mapu / parcelné číslo, informáciu z obce, fotky pozemku alebo stavby, prípadne pôvodnú dokumentáciu a predstavu o dispozícii.<span class="mini">Presný zoznam vám pripraví checklist podľa typu prípadu.</span>',
+ rel:['act:checklist','act:pkg']},
+{id:'kde',cat:'faq',title:'Pôsobíte v celej SR?',tags:'kde pôsobíte celá sr lokalita región vzdialenosť online',
+ body:'Konzultácie vieme riešiť osobne aj online a podľa dohody pokryť rôzne lokality. Niektoré veci (obhliadka, miestne špecifiká) sa dohodnú individuálne.',
+ rel:['act:cal','act:lead']},
+{id:'zmeny',cat:'faq',title:'Dajú sa robiť zmeny počas projektu?',tags:'zmeny počas projektu úpravy návrhu pripomienky revízie',
+ body:'Áno — návrh spoločne ladíme, najmä vo fáze štúdie sú úpravy najjednoduchšie. Vo vyšších stupňoch sú zmeny rozsiahlejšie, preto sa oplatí doladiť koncept včas.',
+ rel:['topic:stupne','act:cal']}
+];
+
+/* ——— prehliadač vedomostnej bázy ——— */
+function flowKB(){
+  botMsg('Tu nájdete <b>kompletný prehľad</b> — služby, postupy, pojmy aj časté otázky. Vyberte oblasť, alebo dole napíšte, čo hľadáte (napr. <i>kolaudácia, prístavba, cena, územný plán</i>).');
+  const m=botMsg(`<div class="panel"><div class="panel-h"><span class="pin"></span>Oblasti</div><div class="panel-b" data-cats></div></div>`);
+  const wrap=m.querySelector('[data-cats]');
+  CATS.forEach(c=>{
+    const n=c.id==='dokumenty'?'' :` · ${KB.filter(k=>k.cat===c.id).length} tém`;
+    const row=el(`<button class="kbcat">${c.ic}<div><div class="kt">${c.t}</div><div class="kd">${c.d}${n}</div></div>${I.arrow}</button>`);
+    row.onclick=()=>{ userMsg(c.t); typing(()=> c.id==='dokumenty'?flowChecklist():showCat(c.id)); };
+    wrap.appendChild(row);
+  });
+  scroll();
+}
+function showCat(catId){
+  const c=CATS.find(x=>x.id===catId);
+  const items=KB.filter(k=>k.cat===catId);
+  botMsg(`<b>${c.t}</b> — vyberte tému:`);
+  chipRow(items.map(k=>({t:k.title,fn:()=>openTopic(k.id)})).concat([{t:'↩ Späť na oblasti',fn:flowKB}]));
+}
+function openTopic(id){
+  const k=KB.find(x=>x.id===id); if(!k)return;
+  botMsg(`<div class="panel"><div class="panel-h"><span class="pin"></span>${k.title}</div><div class="panel-b" style="font:500 13px/1.55 var(--font);color:var(--ink-3)">${k.body}</div></div>`);
+  if(k.rel&&k.rel.length) setTimeout(()=>chipRow(resolveRel(k.rel)),260);
+}
+function resolveRel(rel){
+  const acts={
+    need:{t:'Zistiť, čo potrebujem',ic:I.search,fn:flowNeed},
+    steps:{t:'Postup pri povolení',ic:I.steps,fn:flowSteps},
+    letter:{t:'Vytvoriť správu na úrad',ic:I.mail,fn:flowLetter},
+    pkg:{t:'Projektový štartovací balík',ic:I.pkg,fn:flowPackage},
+    cal:{t:'Rezervovať konzultáciu',ic:I.cal,fn:flowCalendar},
+    checklist:{t:'Checklist dokumentov',ic:I.list,fn:()=>flowChecklist()},
+    lead:{t:'Poslať dopyt',ic:I.send,fn:flowLead}
+  };
+  const out=[];
+  rel.forEach(r=>{
+    if(r.startsWith('topic:')){const k=KB.find(x=>x.id===r.slice(6));if(k)out.push({t:k.title,fn:()=>openTopic(k.id)});}
+    else if(r.startsWith('act:')){const a=acts[r.slice(4)];if(a)out.push(a);}
+  });
+  out.push({t:'↩ Témy',fn:flowKB});
+  return out;
+}
+function searchKB(q){
+  const s=q.toLowerCase().trim();
+  if(s.length<2) return [];
+  const words=s.split(/\s+/);
+  return KB.map(k=>{
+    const hay=(k.title+' '+k.tags+' '+k.cat).toLowerCase();
+    let score=0;
+    words.forEach(w=>{ if(hay.includes(w)) score+= k.title.toLowerCase().includes(w)?3:1; });
+    return {k,score};
+  }).filter(x=>x.score>0).sort((a,b)=>b.score-a.score).slice(0,6).map(x=>x.k);
+}
+
+/* ============ jednoduchý "free text" — vyhľadávanie + scenár ============ */
 function aiUserSend(){
   const t=input.value.trim(); if(!t)return;
   input.value='';userMsg(t);
   const s=t.toLowerCase();
   typing(()=>{
-    if(/povol|úrad|urad|ohlás|ohlas/.test(s)) flowSteps();
-    else if(/termín|termin|konzult|stretnut|kalend/.test(s)) flowCalendar();
-    else if(/list|dokument|prílo|prilo/.test(s)) flowChecklist();
-    else if(/dom|projekt|rekonštr|rekonstr|prístav|pristav/.test(s)) flowNeed();
-    else if(/cena|koľko|kolko|stojí|stoji/.test(s)){
-      botMsg('Presnú cenu vopred nesľubujeme — závisí od typu stavby, rozsahu projektu, lokality, stavu dokumentov, potreby profesií a vyjadrení úradov. <b>Orientačne</b> viem ukázať náročnosť a najlepší ďalší krok je krátka konzultácia.');
-      backMenu();
+    const hits=searchKB(s);
+    if(hits.length){
+      if(hits.length===1){ openTopic(hits[0].id); return; }
+      botMsg(`Našiel som ${hits.length} tém k „<b>${esc(t)}</b>". Vyberte, čo sedí:`);
+      chipRow(hits.map(k=>({t:k.title,fn:()=>openTopic(k.id)})).concat([{t:'Prehľadať všetky témy',ic:I.book,fn:flowKB}]));
+      return;
     }
-    else { botMsg('Rozumiem. Skúsme to zúžiť — vyberte, čo sa hodí:'); setTimeout(()=>menu(),200); }
+    if(/termín|termin|konzult|stretnut|kalend|rezerv/.test(s)){ flowCalendar(); return; }
+    if(/správ|sprav|napís|napis|e-?mail.*úrad|list úradu/.test(s)){ flowLetter(); return; }
+    if(/dopyt|kontakt|ozvite|zavolaj/.test(s)){ flowLead(); return; }
+    botMsg('Túto konkrétnu vec nemám v prehľade, ale rád vás nasmerujem. Skúste iné slovo, prejdite si témy, alebo pošlite dopyt a ozve sa vám projektant.');
+    setTimeout(()=>chipRow([
+      {t:'Prehľadať témy a otázky',ic:I.book,primary:true,fn:flowKB},
+      {t:'Zistiť, čo potrebujem',ic:I.search,fn:flowNeed},
+      {t:'Poslať dopyt',ic:I.send,fn:flowLead}
+    ]),200);
   });
 }
 input.addEventListener('keydown',e=>{if(e.key==='Enter')aiUserSend();});
