@@ -467,7 +467,7 @@ function renderMenu(){
     ['Komunikácia s úradom','Čo a ako napísať, ako reagovať na výzvu úradu',I.mail,'kom'],
     ['Aké podklady potrebujem?','Prehľadný checklist dokumentov',I.list,'podklady'],
     ['Mám pozemok alebo stavbu — čo ďalej?','Nasmerujem vás na ďalší krok',I.search,'start'],
-    ['Preveďte ma tým, čo robíte','Služby projektovej kancelárie',I.book,'about']
+    ['Pojmy, skratky a vysvetlenia','Služby, postupy a časté otázky',I.book,'kb']
   ];
   rows.forEach(it=>{
     const b=el(`<button class="mrow"><span class="mi">${it[2]}</span><div class="mt2"><b>${it[0]}</b><span>${it[1]}</span></div><svg class="mchev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>`);
@@ -597,7 +597,8 @@ const TT={
       RESV
     ]);
   },
-  konz(){ flowCalendar(); }
+  konz(){ flowCalendar(); },
+  kb(){ flowKB(); }
 };
 
 /* ——— sticky pätička: rezervácia + rýchle kontakty ——— */
