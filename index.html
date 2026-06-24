@@ -384,14 +384,18 @@ body.ai-locked{overflow:hidden;position:fixed;width:100%}
 /* === KONFIGURÁCIA — jediné miesto na vyplnenie údajov firmy === */
 const CFG = {
   firma:      'Aplan',
-  telefon:    '+421 911 123 456',   // zobrazený formát
-  telefonRaw: '+421911123456',      // pre tel: (bez medzier)
-  whatsapp:   '421911123456',       // pre wa.me (medzinárodné číslo bez +)
-  email:      'info@aplan.sk',
+  telefon:    '+421 915 775 480',          // zobrazený kontakt firmy
+  telefonRaw: '+421915775480',
+  whatsapp:   '421915775480',              // wa.me (over, či má firma WhatsApp)
+  email:      'aplan@aplan.sk',            // zobrazený e-mail firmy
   web:        'https://www.aplan.sk',
+  adresa:     'Dlhé Diely II 9/B, 841 04 Bratislava',
   gdprUrl:    'https://www.aplan.sk/ochrana-osobnych-udajov',
   hodiny:     'Po–Pia 8:00–16:00',
-  leadEndpoint: ''   // PRODUKCIA: sem doplňte URL backendu/API. Prázdne = fallback na e-mail.
+  leadEmail:  'daniel.vendzur@gmail.com',  // DOČASNE: dopyty/rezervácie chodia sem (nie firme)
+  leadEndpoint: '',                        // voliteľné: URL backendu na dopyty
+  chatEndpoint: '/api/chat',               // AI odpovede (Vercel funkcia); prázdne = bez AI
+  calendly:   ''                           // po vyplnení otvorí reálny Calendly namiesto demo kalendára
 };
 
 /* ——— Logo: chevron „A" z reálneho loga Aplan + „i" s bodkou => „AI" verzia značky ——— */
@@ -904,8 +908,9 @@ async function sendLead(data){
     if(!r.ok) throw new Error('HTTP '+r.status);
     return {via:'api'};
   }
-  const lines=['Nový dopyt z webu — '+CFG.firma,''].concat(Object.keys(data).map(k=>k+': '+data[k]));
-  window.location.href=mailLink((data.predmet||'Dopyt z webu')+' — '+CFG.firma, lines);
+  const subject=(data.predmet||'Dopyt z webu')+' — '+CFG.firma;
+  const body=['Nový dopyt z webu — '+CFG.firma,''].concat(Object.keys(data).map(k=>k+': '+data[k])).join('\n');
+  window.location.href=`mailto:${CFG.leadEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   return {via:'email'};
 }
 function pkgResult(){
@@ -948,6 +953,11 @@ function miniList(items){return '<ul style="margin:0">'+items.map(i=>`<li style=
 /* ============ 5) KALENDÁR — REZERVÁCIA ============ */
 const booking={};
 function flowCalendar(){
+  if(CFG.calendly){
+    botMsg('Otváram rezervačný kalendár v novom okne…<span class="mini">Ak sa neotvoril, povoľte vyskakovacie okná alebo nás kontaktujte priamo.</span>');
+    try{ window.open(CFG.calendly,'_blank','noopener'); }catch(e){}
+    backMenu(); return;
+  }
   booking.type=null;booking.day=null;booking.time=null;
   botMsg('<b>Rezervácia konzultácie</b> — vyberte typ stretnutia, termín a čas.');
   const m=botMsg(`<div class="cal-card" data-cal>
@@ -1310,9 +1320,29 @@ function searchKB(q){
 }
 
 /* ============ jednoduchý "free text" — vyhľadávanie + scenár ============ */
+let aiHistory=[];
 function aiUserSend(){
   const t=input.value.trim(); if(!t)return;
   input.value='';userMsg(t);
+  if(CFG.chatEndpoint){ aiReply(t); } else { legacyAnswer(t); }
+}
+async function aiReply(t){
+  const tn=el('<div class="msg bot"><div class="ma">'+mono()+'</div><div class="typing"><span></span><span></span><span></span></div></div>');
+  body.appendChild(tn);scroll();
+  try{
+    const r=await fetch(CFG.chatEndpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({messages:aiHistory.concat([{role:'user',content:t}])})});
+    if(!r.ok) throw new Error('http');
+    const d=await r.json();
+    const reply=((d&&d.reply)||'').trim();
+    tn.remove();
+    if(!reply) throw new Error('empty');
+    aiHistory.push({role:'user',content:t},{role:'assistant',content:reply});
+    if(aiHistory.length>16) aiHistory=aiHistory.slice(-16);
+    botMsg(esc(reply).replace(/\n/g,'<br>'));
+    setTimeout(()=>chipRow([RESV,{t:'Hlavné menu',fn:menu}]),220);
+  }catch(e){ tn.remove(); legacyAnswer(t); }
+}
+function legacyAnswer(t){
   const s=t.toLowerCase();
   typing(()=>{
     const hits=searchKB(s);
