@@ -1,3 +1,4 @@
+const tls = require('tls');
 const { hasKv, kvCommand, kvSetJson, kvGetJson, isAdmin } = require('./_kv');
 
 const INDEX_KEY = 'aplan:leads:index';
@@ -61,33 +62,142 @@ function escapeHtml(s) {
   return String(s).replace(/[&<>"]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
 }
 
-async function sendResend(lead) {
-  const key = process.env.RESEND_API_KEY;
-  if (!key) throw new Error('missing_resend_api_key');
-  const to = process.env.MAIL_TO || process.env.LEAD_TO;
-  if (!to) throw new Error('missing_mail_to');
-  const from = process.env.MAIL_FROM || process.env.RESEND_FROM || 'Aplan chatbot <onboarding@resend.dev>';
-  const replyTo = lead.data.email || lead.data.em || '';
-  const r = await fetch('https://api.resend.com/emails', {
-    method: 'POST',
-    headers: {
-      authorization: `Bearer ${key}`,
-      'content-type': 'application/json'
-    },
-    body: JSON.stringify({
-      from,
-      to: to.split(',').map(x => x.trim()).filter(Boolean),
-      subject: lead.data.predmet || 'Dopyt z webu - Aplan',
-      text: leadText(lead),
-      html: leadHtml(lead),
-      reply_to: replyTo || undefined
-    })
+function encodeHeader(value) {
+  return /[^\x00-\x7F]/.test(value)
+    ? `=?UTF-8?B?${Buffer.from(value, 'utf8').toString('base64')}?=`
+    : value;
+}
+
+function normalizeRecipients(value) {
+  return String(value || '').split(',').map(x => x.trim()).filter(Boolean);
+}
+
+function smtpClient() {
+  const socket = tls.connect(465, 'smtp.gmail.com', { servername: 'smtp.gmail.com' });
+  let buffer = '';
+  const waiters = [];
+
+  socket.setEncoding('utf8');
+  socket.setTimeout(12000);
+  socket.on('data', chunk => {
+    buffer += chunk;
+    flush();
   });
-  const text = await r.text();
-  let data = null;
-  try { data = text ? JSON.parse(text) : null; } catch (e) { data = { raw: text }; }
-  if (!r.ok) throw new Error((data && data.message) || text || `Resend HTTP ${r.status}`);
-  return { provider: 'resend', id: data && data.id };
+  socket.on('error', err => {
+    while (waiters.length) waiters.shift().reject(err);
+  });
+  socket.on('timeout', () => {
+    const err = new Error('smtp_timeout');
+    socket.destroy(err);
+    while (waiters.length) waiters.shift().reject(err);
+  });
+
+  function flush() {
+    while (waiters.length) {
+      const lines = buffer.split(/\r?\n/);
+      let end = -1;
+      for (let i = 0; i < lines.length - 1; i++) {
+        if (/^\d{3} /.test(lines[i])) { end = i; break; }
+      }
+      if (end < 0) return;
+      const response = lines.slice(0, end + 1).join('\n');
+      buffer = lines.slice(end + 1).join('\n');
+      waiters.shift().resolve(response);
+    }
+  }
+
+  function read() {
+    return new Promise((resolve, reject) => {
+      waiters.push({ resolve, reject });
+      flush();
+    });
+  }
+
+  function write(command) {
+    socket.write(command + '\r\n');
+  }
+
+  function close() {
+    socket.end();
+  }
+
+  return { read, write, close };
+}
+
+async function smtpExpect(client, expected) {
+  const response = await client.read();
+  const code = Number(response.slice(0, 3));
+  const ok = Array.isArray(expected) ? expected.includes(code) : code === expected;
+  if (!ok) throw new Error(`smtp_${code || 'bad_response'}`);
+  return response;
+}
+
+async function sendGmail(lead) {
+  const user = process.env.GMAIL_USER;
+  const password = process.env.GMAIL_APP_PASSWORD;
+  const to = normalizeRecipients(process.env.MAIL_TO || process.env.LEAD_TO);
+  if (!user) throw new Error('missing_gmail_user');
+  if (!password) throw new Error('missing_gmail_app_password');
+  if (!to.length) throw new Error('missing_mail_to');
+
+  const subject = lead.data.predmet || 'Dopyt z webu - Aplan';
+  const replyTo = lead.data.email || lead.data.em || '';
+  const boundary = `aplan-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  const text = leadText(lead).replace(/^\./gm, '..');
+  const html = leadHtml(lead);
+  const headers = [
+    `From: ${process.env.MAIL_FROM || `Aplan chatbot <${user}>`}`,
+    `To: ${to.join(', ')}`,
+    `Subject: ${encodeHeader(subject)}`,
+    ...(replyTo ? [`Reply-To: ${replyTo}`] : []),
+    'MIME-Version: 1.0',
+    `Content-Type: multipart/alternative; boundary="${boundary}"`
+  ];
+  const message = [
+    headers.join('\r\n'),
+    '',
+    `--${boundary}`,
+    'Content-Type: text/plain; charset=UTF-8',
+    'Content-Transfer-Encoding: 8bit',
+    '',
+    text,
+    '',
+    `--${boundary}`,
+    'Content-Type: text/html; charset=UTF-8',
+    'Content-Transfer-Encoding: 8bit',
+    '',
+    html.replace(/\r?\n/g, '\r\n'),
+    '',
+    `--${boundary}--`
+  ].join('\r\n').replace(/\r\n\./g, '\r\n..');
+
+  const client = smtpClient();
+  try {
+    await smtpExpect(client, 220);
+    client.write('EHLO aplan-chatbot');
+    await smtpExpect(client, 250);
+    client.write('AUTH LOGIN');
+    await smtpExpect(client, 334);
+    client.write(Buffer.from(user).toString('base64'));
+    await smtpExpect(client, 334);
+    client.write(Buffer.from(password).toString('base64'));
+    await smtpExpect(client, 235);
+    client.write(`MAIL FROM:<${user}>`);
+    await smtpExpect(client, 250);
+    for (const recipient of to) {
+      client.write(`RCPT TO:<${recipient}>`);
+      await smtpExpect(client, [250, 251]);
+    }
+    client.write('DATA');
+    await smtpExpect(client, 354);
+    client.write(message + '\r\n.');
+    await smtpExpect(client, 250);
+    client.write('QUIT');
+    await smtpExpect(client, 221);
+    return { provider: 'gmail_smtp', to };
+  } finally {
+    client.close();
+  }
 }
 
 async function saveLead(lead) {
@@ -151,7 +261,7 @@ module.exports = async (req, res) => {
 
   try {
     const saved = await saveLead(lead);
-    const mailed = await sendResend(lead);
+    const mailed = await sendGmail(lead);
     res.status(200).json({ ok: true, saved, mail: mailed });
   } catch (e) {
     res.status(502).json({ error: 'lead_failed', detail: e.message.slice(0, 300) });

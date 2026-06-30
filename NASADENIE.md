@@ -52,18 +52,20 @@ Pre maximálnu kvalitu zmeň na `'claude-opus-4-8'` (drahšie).
 
 ## 3. Dopyty a rezervácie — kam chodia
 
-Dočasne nastavené na **teba**: `CFG.leadEmail = 'daniel.vendzur@gmail.com'`.
-Po odoslaní formulára sa otvorí e-mail predvyplnený na túto adresu.
+Naostro je pripravený endpoint `CFG.leadEndpoint = '/api/lead'`.
+Dopyty odosiela Vercel funkcia `api/lead.js` cez Gmail app password a zároveň ich ukladá do KV.
 
-Až to bude pre firmu naostro:
-- zmeň `leadEmail` na e-mail Aplanu, **alebo**
-- nasaď backend a nastav `CFG.leadEndpoint` (napr. ďalšia Vercel funkcia
-  `api/lead.js` + e-mailová služba ako Resend) — funkcia `sendLead(data)`
-  v `index.html` je na to pripravená (POST JSON na endpoint).
+Vo Verceli nastav:
+- `GMAIL_USER` — Gmail adresa odosielateľa.
+- `GMAIL_APP_PASSWORD` — app password z Google účtu.
+- `MAIL_TO` — kam majú chodiť dopyty.
+- `KV_REST_API_URL` a `KV_REST_API_TOKEN` — ukladanie dopytov a histórie.
+- `ADMIN_KEY` — kľúč na čítanie uložených dopytov/histórie.
 
 ## 4. Zhrnutie premenných na vyplnenie
 - `ANTHROPIC_API_KEY` — vo Vercel env (AI).
+- `GMAIL_USER`, `GMAIL_APP_PASSWORD`, `MAIL_TO` — odosielanie dopytov.
+- `KV_REST_API_URL`, `KV_REST_API_TOKEN`, `ADMIN_KEY` — história a uložené dopyty.
 - `CFG.chatEndpoint` — `/api/chat` (alebo absolútna URL pri cudzej doméne).
 - `CFG.calendly` — odkaz na Calendly (alebo prázdne = demo kalendár).
-- `CFG.leadEmail` — kam chodia dopyty (teraz tvoj e-mail).
 - `CFG.telefon/email/...` — kontakty firmy zobrazené v asistentovi.
