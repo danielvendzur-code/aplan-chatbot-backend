@@ -158,6 +158,11 @@ body.ai-locked{overflow:hidden;position:fixed;width:100%;left:0;right:0}
 .mrow .mt2 span{display:block;font:600 11px var(--font);color:var(--muted);margin-top:1px}
 .mrow .mchev{width:15px;height:15px;color:var(--line-2);flex:0 0 auto;transition:transform .18s,color .18s}
 .mrow:hover .mchev{color:var(--accent-2);transform:translateX(3px)}
+.mrow.featured{background:var(--accent-soft)}
+.mrow.featured::before{transform:scaleY(1);background:var(--accent-2)}
+.mrow.featured .mi{background:var(--accent)}
+.mrow.featured .mi svg{color:#fff}
+.mrow.featured .mt2 b{color:var(--accent-2)}
 .menu .resv{margin-bottom:11px}
 .resv{display:flex;align-items:center;gap:12px;border:1px solid var(--line);background:var(--paper);border-radius:13px;padding:12px 13px;cursor:pointer;transition:all .15s}
 .resv:hover{border-color:var(--accent);box-shadow:0 6px 18px rgba(22,24,28,.06)}
@@ -184,6 +189,8 @@ body.ai-locked{overflow:hidden;position:fixed;width:100%;left:0;right:0}
 .hist-note{text-align:center;font:600 10px var(--font);letter-spacing:.06em;text-transform:uppercase;color:var(--muted-2);margin:4px 0 12px;position:relative}
 .hist-note::before,.hist-note::after{content:"";position:absolute;top:50%;width:24%;height:1px;background:var(--line)}
 .hist-note::before{left:6px}.hist-note::after{right:6px}
+.msg.bot.explainable .mb{cursor:help}
+.msg.bot.explainable .mb:hover{border-color:var(--accent)}
 
 /* rozklikávateľné kroky postupu */
 .steps{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--paper);margin-top:8px;box-shadow:0 4px 14px rgba(22,24,28,.05)}
@@ -298,6 +305,10 @@ body.ai-locked{overflow:hidden;position:fixed;width:100%;left:0;right:0}
 /* rýchle kontakty — kompaktná lišta pod inputom */
 /* sticky pätička */
 .ai-foot{padding:0 12px 12px;background:var(--paper);display:flex;flex-direction:column;gap:8px}
+.foot-resv{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;border:0;border-radius:13px;background:var(--ink);color:#fff;padding:13px;font:800 14px var(--font);cursor:pointer;transition:background .18s}
+.foot-resv:hover{background:var(--ink);color:var(--accent)}
+.foot-resv svg{width:18px;height:18px;color:#fff;stroke:#fff}
+.foot-resv:hover svg{color:var(--accent);stroke:var(--accent)}
 .ai-contacts{display:flex;gap:8px}
 .qa{flex:1;justify-content:center;border:1px solid var(--line-2);background:var(--soft-2);border-radius:11px;padding:11px 8px;font:700 13px var(--font);color:var(--ink);cursor:pointer;display:inline-flex;align-items:center;gap:7px;text-decoration:none;transition:all .15s}
 .qa:hover{border-color:var(--accent);background:var(--accent-soft);color:var(--ink)}
@@ -461,6 +472,7 @@ function bubble(role,h,t){
   const m=el(role==='bot'
     ? `<div class="msg bot"><div class="ma">${mono()}</div><div class="col"><div class="mb">${h}</div><div class="mt">${t}</div></div></div>`
     : `<div class="msg user"><div class="ma"></div><div class="col"><div class="mb">${h}</div><div class="mt">${t}</div></div></div>`);
+  if(role==='bot') m.classList.add('explainable');
   body.appendChild(m);scroll();return m;
 }
 function botMsg(html,opts){
@@ -471,6 +483,31 @@ function botMsg(html,opts){
 function userMsg(text){
   const h=esc(text),t=stamp(); bubble('user',h,t);
   if(!restoring){ convo.push({r:'user',h:h,t:t}); saveConvo(); }
+}
+function explainMessageText(txt){
+  const s=txt.toLowerCase();
+  const out=[];
+  if(/stavebn[eé] povolen|povolenie/.test(s)) out.push('Stavebné povolenie je úradný proces pre väčšie alebo zásadnejšie stavby. Úrad posudzuje projekt, vlastnícke vzťahy, vyjadrenia a súlad s pravidlami v danej obci.');
+  if(/ohl[aá]sen|ohl[aá][sš]k/.test(s)) out.push('Ohlásenie je jednoduchší postup pre menšie stavby alebo úpravy. Aj pri ňom však treba počkať na písomné stanovisko úradu.');
+  if(/kolaud/.test(s)) out.push('Kolaudácia rieši už dokončenú stavbu. Úrad kontroluje, či je možné stavbu bezpečne užívať a či sedia potrebné doklady.');
+  if(/projektov[aá] dokument[aá]cia|projekt/.test(s)) out.push('Projektová dokumentácia je sada výkresov, technických správ a príloh, podľa ktorých úrad aj realizátori chápu, čo sa má stavať alebo meniť.');
+  if(/podklad|pr[ií]loh|list vlastn[ií]ctva|kataster/.test(s)) out.push('Podklady sú vstupné dokumenty k zámeru. Čím sú presnejšie, tým ľahšie projektant určí správny postup a rozsah dokumentácie.');
+  if(/[uú]rad|obec|vyjadren|podanie/.test(s)) out.push('Pri úradoch je dôležité mať písomnú stopu: čo presne riešite, parcelu alebo lokalitu, zoznam príloh a odpoveď referenta.');
+  if(/aplan|konzult|dopyt/.test(s)) out.push('Aplan pripraví projektovú dokumentáciu, odborné podklady a poradí s postupom. Podanie a komunikáciu s úradom rieši klient, ak nie je dohodnuté inak.');
+  if(!out.length) out.push('Táto správa je orientačné vysvetlenie ďalšieho kroku. Nejde o záväzné rozhodnutie úradu, ale o praktické nasmerovanie, čo si overiť alebo pripraviť.');
+  const preview=txt.length>130?txt.slice(0,127)+'...':txt;
+  return infoBlock('Podrobnejšie vysvetlenie',
+    miniList(out.slice(0,4))+
+    `<span class="mini">Kliknutá správa: "${esc(preview)}"</span>`);
+}
+function explainBotMessage(msg){
+  if(msg.dataset.explained||msg.dataset.noExplain) return;
+  const txt=(msg.querySelector('.mb')?.textContent||'').replace(/\s+/g,' ').trim();
+  if(txt.length<8) return;
+  msg.dataset.explained='1';
+  const m=botMsg(explainMessageText(txt),{persist:false});
+  m.dataset.noExplain='1';
+  m.classList.remove('explainable');
 }
 function restoreConvo(){
   let arr;
@@ -491,6 +528,12 @@ body.addEventListener('click',function(e){
   const h=e.target.closest('.stp-h'); if(!h||!body.contains(h)) return;
   const stp=h.parentNode; const open=stp.classList.toggle('open');
   const x=h.querySelector('.stp-x'); if(x) x.textContent=open?'–':'+';
+});
+body.addEventListener('click',function(e){
+  const msg=e.target.closest('.msg.bot');
+  if(!msg||!body.contains(msg)) return;
+  if(e.target.closest('button,a,input,textarea,select,label,.chip,.mrow,.stp-h,.check,.kbcat,.cal-type,.cal-day,.cal-time,.cal-card,.btn-go,.copyrow,[data-f],[data-cal],[data-calc],[data-lead],[data-letter],[data-pkg],[data-chk],[data-pkgsend]')) return;
+  explainBotMessage(msg);
 });
 function chipRow(list){
   body.querySelectorAll('.chips').forEach(x=>x.remove());
@@ -559,14 +602,14 @@ function renderMenu(){
   const wrap=el('<div class="menu"></div>');
   const card=el('<div class="menu-card"></div>');
   const rows=[
-    ['Neviem, čo potrebujem','Sprievodca zámerom a ďalším postupom',I.search,'need'],
+    ['Neviem, čo potrebujem','Sprievodca zámerom a ďalším postupom',I.search,'need',true],
     ['Úradné postupy','Stavebné povolenie, ohlásenie, kolaudácia, prístavba',I.steps,'uradne'],
     ['Komunikácia s úradom','Čo a ako napísať, ako reagovať na výzvu úradu',I.mail,'kom'],
     ['Aké podklady potrebujem?','Prehľadný checklist dokumentov',I.list,'podklady'],
     ['Čo robí Aplan','V skratke, ako vám vieme pomôcť',I.info,'about']
   ];
   rows.forEach(it=>{
-    const b=el(`<button class="mrow"><span class="mi">${it[2]}</span><div class="mt2"><b>${it[0]}</b><span>${it[1]}</span></div><svg class="mchev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>`);
+    const b=el(`<button class="mrow ${it[4]?'featured':''}"><span class="mi">${it[2]}</span><div class="mt2"><b>${it[0]}</b><span>${it[1]}</span></div><svg class="mchev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>`);
     b.onclick=()=>{wrap.remove();userMsg(it[0]);typing(()=>topic(it[3]));};
     card.appendChild(b);
   });
@@ -697,7 +740,8 @@ const TT={
   kb(){ flowKB(); }
 };
 
-/* ——— sticky pätička: rýchle kontakty ——— */
+/* ——— sticky pätička: rezervácia + rýchle kontakty ——— */
+function footResv(){ userMsg('Rezervovať konzultáciu'); typing(flowCalendar); }
 function renderFoot(){
   const f=document.getElementById('ai-foot');
   const acts=[
@@ -705,9 +749,11 @@ function renderFoot(){
     {t:'E-mail',svg:I.mail,href:'mailto:'+CFG.email},
     {t:'WhatsApp',svg:I.wa,href:'https://wa.me/'+CFG.whatsapp}
   ];
+  const resv=el(`<button class="foot-resv">${I.cal}<span>Rezervovať konzultáciu</span></button>`);
+  resv.onclick=footResv;
   const row=el('<div class="ai-contacts"></div>');
   acts.forEach(a=>row.appendChild(el(`<a class="qa" href="${a.href}" target="_blank" rel="noopener">${a.svg}<span>${a.t}</span></a>`)));
-  f.innerHTML=''; f.appendChild(row);
+  f.innerHTML=''; f.appendChild(resv); f.appendChild(row);
 }
 renderFoot();
 
