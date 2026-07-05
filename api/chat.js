@@ -6,7 +6,7 @@
 //   2) Settings → Environment Variables → ANTHROPIC_API_KEY = sk-ant-...
 //   3) Redeploy. Endpoint bude dostupný na /api/chat.
 
-const MODEL = 'claude-sonnet-4-6';  // kvalita/cena sweet spot (~0,5–0,8 centa za odpoveď). Lacnejšie: 'claude-haiku-4-5'
+const MODEL = 'claude-haiku-4-5';   // rýchly a lacný pre web (~0,2 centa/odpoveď). Vyššia kvalita: 'claude-sonnet-4-6'
 
 const SYSTEM = `Si "Aplan AI" — asistent na webe projektovej (architektonicko-inžinierskej) kancelárie Aplan na Slovensku.
 
