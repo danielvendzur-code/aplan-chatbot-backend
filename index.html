@@ -196,6 +196,11 @@ html{scroll-behavior:smooth}
 .typing{display:flex;gap:4px;padding:13px 15px;background:var(--paper);border:1px solid var(--line);border-radius:4px 16px 16px 16px;width:fit-content}
 .typing span{width:7px;height:7px;border-radius:50%;background:var(--line-2);animation:bounce 1.2s infinite}
 .typing span:nth-child(2){animation-delay:.18s}.typing span:nth-child(3){animation-delay:.36s}
+.typing .tl{font:600 11px var(--font);color:var(--muted-2);margin-left:8px;animation:none}
+/* zoskupené botové správy — avatar len pri prvej, menšia medzera */
+.msg.bot + .msg.bot{margin-top:-6px}
+.msg.bot + .msg.bot > .ma{opacity:0}
+.msg.bot + .msg.bot .mb{border-top-left-radius:16px}
 @keyframes bounce{0%,60%,100%{transform:translateY(0);opacity:.5}30%{transform:translateY(-5px);opacity:1}}
 
 /* chips */
@@ -721,6 +726,7 @@ function aiOpen(){
   document.getElementById('ai-panel').classList.add('open');
   document.getElementById('ai-launch').classList.add('open');
   aiTeaserClose();
+  if(!isMobileChat()) setTimeout(()=>{try{input.focus();}catch(e){}},380);
   if(isMobileChat()&&!document.body.classList.contains('ai-locked')){
     savedScrollY=window.scrollY||document.documentElement.scrollTop||0;
     document.body.style.top=`-${savedScrollY}px`;
@@ -1563,7 +1569,7 @@ function aiUserSend(){
   if(CFG.chatEndpoint){ aiReply(t); } else { legacyAnswer(t); }
 }
 async function aiReply(t){
-  const tn=el('<div class="msg bot"><div class="ma">'+mono()+'</div><div class="typing"><span></span><span></span><span></span></div></div>');
+  const tn=el('<div class="msg bot"><div class="ma">'+mono()+'</div><div class="typing"><span></span><span></span><span></span><span class="tl">Aplan AI píše…</span></div></div>');
   body.appendChild(tn);scroll();
   try{
     const r=await fetch(CFG.chatEndpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({messages:aiHistory.concat([{role:'user',content:t}])})});
@@ -1575,8 +1581,26 @@ async function aiReply(t){
     aiHistory.push({role:'user',content:t},{role:'assistant',content:reply});
     if(aiHistory.length>16) aiHistory=aiHistory.slice(-16);
     botMsg(formatAI(reply));
-    setTimeout(()=>chipRow([RESV,{t:'Hlavné menu',fn:menu}]),220);
+    setTimeout(()=>chipRow(smartChips(t,reply)),220);
   }catch(e){ tn.remove(); legacyAnswer(t); }
+}
+/* Kontextové follow-up chipy — asistent sám ponúkne logický ďalší krok
+   podľa toho, o čom bola otázka a odpoveď. */
+function smartChips(question,reply){
+  const s=(question+' '+reply).toLowerCase();
+  const out=[];
+  const add=(c)=>{ if(out.length<3 && !out.some(x=>x.t===c.t)) out.push(c); };
+  if(/kolaud/.test(s)) add({t:'Postup kolaudácie krok za krokom',ic:I.steps,fn:()=>topic('kol')});
+  else if(/ohlás|ohlas|drobn/.test(s)) add({t:'Postup ohlásenia krok za krokom',ic:I.steps,fn:()=>topic('od')});
+  else if(/prístav|pristav|nadstav|zmena stav/.test(s)) add({t:'Postup pri prístavbe',ic:I.steps,fn:()=>topic('zmena')});
+  else if(/povolen/.test(s)) add({t:'Postup povolenia krok za krokom',ic:I.steps,fn:()=>topic('sp')});
+  if(/dokument|podklad|list vlastníctva|list vlastnictva|katastr|prílo|prilo/.test(s)) add({t:'Checklist dokumentov',ic:I.list,fn:()=>flowChecklist()});
+  if(/napís|napis|správ|sprav|žiados|ziados|e-?mail.*(úrad|urad|obec)|(úrad|urad|obec).*(otázk|otazk)/.test(s)) add({t:'Pripraviť správu na úrad',ic:I.mail,fn:()=>flowLetter()});
+  if(/cena|koľko|kolko|stojí|stoji|rozpoč|rozpoc|ponuk/.test(s)) add({t:'Poslať nezáväzný dopyt',ic:I.send,fn:flowLead});
+  if(/konzult|termín|termin|stretnut|osobne/.test(s)) out.unshift(RESV);
+  if(!out.some(x=>x.t===RESV.t)) add(RESV);
+  out.push({t:'Hlavné menu',fn:menu});
+  return out;
 }
 /* AI odpoveď → čitateľné HTML: odseky + odrážky z riadkov začínajúcich "- " */
 function formatAI(text){
