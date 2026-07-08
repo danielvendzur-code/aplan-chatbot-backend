@@ -208,6 +208,14 @@ html{scroll-behavior:smooth}
 .msg.user .mb{background:linear-gradient(135deg,var(--ink) 0%,var(--ink-3) 100%)}
 .chip:active,.qa:active,.foot-resv:active{transform:scale(.97)}
 .ai-body::-webkit-scrollbar-thumb:hover{background:var(--accent)}
+/* premýšľajúci stav */
+.think-row .col2{display:flex;flex-direction:column;gap:7px;max-width:84%}
+.think{font:600 11.5px/1.4 var(--font);color:var(--muted-2);font-style:italic;transition:opacity .17s;padding-left:2px}
+/* Calendly priamo v okne */
+.cal-embed{margin-top:8px;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#fff;height:640px;box-shadow:0 6px 20px rgba(22,24,28,.06)}
+.cal-embed-load{padding:40px 20px;text-align:center;color:var(--muted);font:600 13px var(--font)}
+.cal-embed iframe{border:0;width:100%;height:100%}
+@media(max-width:520px){.cal-embed{height:560px}}
 @keyframes bounce{0%,60%,100%{transform:translateY(0);opacity:.5}30%{transform:translateY(-5px);opacity:1}}
 
 /* chips */
@@ -1198,12 +1206,39 @@ function miniList(items){return '<ul style="margin:0">'+items.map(i=>`<li style=
 
 /* ============ 5) KALENDÁR — REZERVÁCIA ============ */
 const booking={};
-function flowCalendar(){
-  if(CFG.calendly){
-    botMsg(`Otváram rezervačný kalendár. Termín bude potvrdený až v Calendly.<span class="mini">Ak sa kalendár neotvoril, povoľte vyskakovacie okná alebo použite <a href="${esc(CFG.calendly)}" target="_blank" rel="noopener">tento odkaz</a>.</span>`);
-    try{ window.open(CFG.calendly,'_blank','noopener'); }catch(e){}
-    backMenu(); return;
+/* ——— Calendly priamo v okne (bez presmerovania) ——— */
+let calendlyLoading=false;
+function loadCalendly(cb){
+  if(window.Calendly){ cb(); return; }
+  const done=()=>{ if(window.Calendly) cb(); else cb(true); };
+  if(calendlyLoading){ let n=0; const iv=setInterval(()=>{ if(window.Calendly){clearInterval(iv);cb();} else if(++n>60){clearInterval(iv);cb(true);} },100); return; }
+  calendlyLoading=true;
+  if(!document.getElementById('calendly-css')){ const l=document.createElement('link'); l.id='calendly-css'; l.rel='stylesheet'; l.href='https://assets.calendly.com/assets/external/widget.css'; document.head.appendChild(l); }
+  const s=document.createElement('script'); s.src='https://assets.calendly.com/assets/external/widget.js'; s.async=true;
+  s.onload=done; s.onerror=()=>cb(true); document.head.appendChild(s);
+}
+function calendlyInline(){
+  botMsg('<b>Rezervácia konzultácie</b> — vyberte si termín priamo tu. Po potvrdení príde e-mail vám aj nám.');
+  const m=botMsg('<div class="cal-embed" data-cal-embed><div class="cal-embed-load">Načítavam kalendár…</div></div>',{persist:false});
+  const host=m.querySelector('[data-cal-embed]');
+  loadCalendly((err)=>{
+    if(err||!window.Calendly){ host.innerHTML='<div class="cal-embed-load">Kalendár sa nepodarilo načítať. <a href="'+esc(CFG.calendly)+'" target="_blank" rel="noopener">Otvoriť rezerváciu v novom okne</a>.</div>'; return; }
+    host.innerHTML='';
+    const url=CFG.calendly+(CFG.calendly.indexOf('?')<0?'?':'&')+'hide_gdpr_banner=1&primary_color=b89a6e';
+    window.Calendly.initInlineWidget({url:url, parentElement:host});
+  });
+  next([{t:'Radšej napíšem dopyt',ic:I.send,fn:flowLead}]);
+}
+/* potvrdenie rezervácie z Calendly (postMessage) */
+window.addEventListener('message',function(e){
+  if(!e||!e.data||typeof e.data!=='object') return;
+  if(e.data.event==='calendly.event_scheduled' && document.getElementById('ai-panel').classList.contains('open')){
+    botMsg('<div class="confirm"><div class="ci">Termín je rezervovaný</div><div class="cb">Ďakujeme! Potvrdenie vám prišlo e-mailom. Tešíme sa na konzultáciu.</div></div>');
+    setTimeout(()=>chipRow([{t:'Poslať aj dopyt',ic:I.send,fn:flowLead},{t:'Hlavné menu',fn:menu}]),200);
   }
+});
+function flowCalendar(){
+  if(CFG.calendly){ calendlyInline(); return; }
   booking.type=null;booking.day=null;booking.time=null;
   botMsg('<b>Rezervácia konzultácie</b> — vyberte typ stretnutia, termín a čas.');
   const m=botMsg(`<div class="cal-card" data-cal>
@@ -1574,19 +1609,46 @@ function aiUserSend(){
   if(CFG.chatEndpoint){ aiReply(t); } else { legacyAnswer(t); }
 }
 async function aiReply(t){
-  const tn=el('<div class="msg bot"><div class="ma">'+mono()+'</div><div class="typing"><span></span><span></span><span></span></div></div>');
+  const tn=el('<div class="msg bot think-row"><div class="ma">'+mono()+'</div><div class="col2"><div class="typing"><span></span><span></span><span></span></div><div class="think"></div></div></div>');
   body.appendChild(tn);scroll();
+  const think=startThinking(tn.querySelector('.think'), t);
   try{
     const r=await fetch(CFG.chatEndpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({messages:aiHistory.concat([{role:'user',content:t}])})});
     if(!r.ok) throw new Error('http');
     const d=await r.json();
     const reply=((d&&d.reply)||'').trim();
-    tn.remove();
+    think.stop(); tn.remove();
     if(!reply) throw new Error('empty');
     aiHistory.push({role:'user',content:t},{role:'assistant',content:reply});
     if(aiHistory.length>16) aiHistory=aiHistory.slice(-16);
     typeReply(reply, ()=>chipRow(smartChips(t,reply)));
-  }catch(e){ tn.remove(); legacyAnswer(t); }
+  }catch(e){ think.stop(); tn.remove(); legacyAnswer(t); }
+}
+/* „Premýšľajúci" stav — počas čakania sa mení, o čom asistent uvažuje,
+   podľa témy otázky (nie iba bodky). */
+function thinkPhrases(q){
+  const s=q.toLowerCase(); let p=[];
+  if(/kolaud/.test(s)) p=['Prechádzam postup pri kolaudácii…','Pozerám, aké revízie a doklady treba…'];
+  else if(/ohlás|ohlas|drobn|garáž|garaz|plot|prístre|pristre|altán|altan/.test(s)) p=['Zisťujem, či pre túto stavbu stačí ohlásenie…','Prechádzam postup ohlásenia drobnej stavby…'];
+  else if(/povolen/.test(s)) p=['Prechádzam postup pri stavebnom povolení…','Pozerám, čo treba doložiť k žiadosti…'];
+  else if(/prístav|pristav|nadstav|rekonštr|rekonstr|zmena stav/.test(s)) p=['Pozerám možnosti pri zásahu do existujúcej stavby…','Zvažujem, či ide o ohlásenie alebo povolenie…'];
+  else if(/pozemk|kúp|kup|parcel|územn|uzemn|regulat/.test(s)) p=['Overujem, čo si treba zistiť o pozemku…','Prechádzam územný plán a regulatívy…'];
+  else if(/dokument|podklad|list vlast|katastr|prílo|prilo/.test(s)) p=['Skladám zoznam potrebných dokumentov…'];
+  else if(/cena|koľko|kolko|stojí|stoji|rozpoč|rozpoc|ponuk/.test(s)) p=['Pozerám, od čoho závisí cena a rozsah…'];
+  else if(/projekt|dokumentác|dokumentac|štúdi|studi|statik|energet/.test(s)) p=['Prechádzam, čo projektová dokumentácia obsahuje…'];
+  else p=['Premýšľam nad vašou otázkou…'];
+  p.push('Formulujem zrozumiteľnú odpoveď…');
+  return p;
+}
+function startThinking(elm, q){
+  const phrases=thinkPhrases(q); let i=0;
+  elm.textContent=phrases[0];
+  const iv=setInterval(()=>{
+    i=(i+1)%phrases.length;
+    elm.style.opacity=0;
+    setTimeout(()=>{ elm.textContent=phrases[i]; elm.style.opacity=1; },170);
+  },1500);
+  return { stop(){ clearInterval(iv); } };
 }
 /* Postupné vypisovanie AI odpovede (typewriter). Na konci sa text
    prekreslí na plné formátovanie a uloží do histórie (local + KV). */
@@ -1625,8 +1687,40 @@ function smartChips(question,reply){
   if(/cena|koľko|kolko|stojí|stoji|rozpoč|rozpoc|ponuk/.test(s)) add({t:'Poslať nezáväzný dopyt',ic:I.send,fn:flowLead});
   if(/konzult|termín|termin|stretnut|osobne/.test(s)) out.unshift(RESV);
   if(!out.some(x=>x.t===RESV.t)) add(RESV);
+  if(aiHistory.length>=2) out.push({t:'Poslať zhrnutie na e-mail',ic:I.mail,fn:emailSummary});
   out.push({t:'Hlavné menu',fn:menu});
   return out;
+}
+/* Bod 4 — pošli klientovi (aj firme) zhrnutie konverzácie e-mailom */
+function buildSummary(){
+  const lines=['Zhrnutie vašej konverzácie s Aplan AI asistentom:',''];
+  aiHistory.forEach(m=>{
+    if(m.role==='user') lines.push('Otázka: '+m.content);
+    else lines.push('Odpoveď: '+m.content,'');
+  });
+  lines.push('Odporúčaný ďalší krok: nezáväzná konzultácia s projektantom, ktorý váš prípad posúdi presne.');
+  return lines.join('\n');
+}
+function emailSummary(){
+  if(aiHistory.length<2){ botMsg('Najprv sa ma niečo spýtajte — potom vám celé zhrnutie pošlem na e-mail.'); setTimeout(()=>chipRow([RESV,{t:'Hlavné menu',fn:menu}]),150); return; }
+  const m=botMsg(`<div class="panel"><div class="panel-h"><span class="pin"></span>Poslať zhrnutie na e-mail</div><div class="panel-b" data-sum>
+    <div class="field"><label>Váš e-mail</label><input data-f="em" type="email" placeholder="vas@email.sk"></div>
+    ${gdprField()}
+    <button class="btn-go">Poslať zhrnutie</button></div></div>`,{persist:false});
+  const p=m.querySelector('[data-sum]'); const btn=p.querySelector('.btn-go');
+  btn.onclick=async ()=>{
+    if(btn.dataset.busy) return;
+    const em=val(p,'em');
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)){ markBad(p,['em']); return; }
+    if(!p.querySelector('[data-f="gdpr"]').checked){ botMsg('Prosím potvrďte súhlas so spracovaním osobných údajov.'); return; }
+    btn.dataset.busy='1'; btn.disabled=true; const lbl=btn.textContent; btn.textContent='Odosielam…';
+    try{
+      await sendLead({predmet:'Zhrnutie konzultácie (klient)',email:em,meno:'Zhrnutie pre klienta',popis:'Klient si vyžiadal zhrnutie konverzácie.',clientCopy:true,summary:buildSummary()});
+      m.remove();
+      botMsg('<div class="confirm"><div class="ci">Odoslané ✓</div><div class="cb">Zhrnutie sme poslali na <b>'+esc(em)+'</b>. Kópiu má aj Aplan — ak budete chcieť pokračovať, ozveme sa vám.</div></div>');
+      backMenu();
+    }catch(e){ btn.disabled=false;btn.dataset.busy='';btn.textContent=lbl; botMsg('<div class="confirm err"><div class="ci">Nepodarilo sa odoslať</div><div class="cb">Skúste to prosím znova, alebo nám napíšte na <a href="mailto:'+CFG.email+'">'+CFG.email+'</a>.</div></div>'); }
+  };
 }
 /* AI odpoveď → čitateľné HTML: odseky + odrážky z riadkov začínajúcich "- " */
 function formatAI(text){
