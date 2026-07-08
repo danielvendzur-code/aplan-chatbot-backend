@@ -20,7 +20,7 @@ function textValue(v, max = 2000) {
 function cleanLead(data) {
   const out = {};
   Object.keys(data || {}).forEach(k => {
-    if (k === 'conversation') return;
+    if (k === 'conversation' || k === 'clientCopy') return;
     out[k] = textValue(data[k], 4000);
   });
   return out;
@@ -133,18 +133,26 @@ async function smtpExpect(client, expected) {
 }
 
 async function sendGmail(lead) {
+  const to = normalizeRecipients(process.env.MAIL_TO || process.env.LEAD_TO);
+  if (!to.length) throw new Error('missing_mail_to');
+  return sendGmailRaw({
+    to,
+    subject: lead.data.predmet || 'Dopyt z webu - Aplan',
+    replyTo: lead.data.email || lead.data.em || '',
+    text: leadText(lead),
+    html: leadHtml(lead)
+  });
+}
+
+async function sendGmailRaw({ to, subject, replyTo, text, html }) {
   const user = process.env.GMAIL_USER;
   const password = process.env.GMAIL_APP_PASSWORD;
-  const to = normalizeRecipients(process.env.MAIL_TO || process.env.LEAD_TO);
   if (!user) throw new Error('missing_gmail_user');
   if (!password) throw new Error('missing_gmail_app_password');
-  if (!to.length) throw new Error('missing_mail_to');
+  if (!to.length) throw new Error('missing_recipient');
 
-  const subject = lead.data.predmet || 'Dopyt z webu - Aplan';
-  const replyTo = lead.data.email || lead.data.em || '';
   const boundary = `aplan-${Date.now()}-${Math.random().toString(36).slice(2)}`;
-  const text = leadText(lead).replace(/^\./gm, '..');
-  const html = leadHtml(lead);
+  text = String(text).replace(/^\./gm, '..');
   const headers = [
     `From: ${process.env.MAIL_FROM || `Aplan chatbot <${user}>`}`,
     `To: ${to.join(', ')}`,
@@ -262,7 +270,32 @@ module.exports = async (req, res) => {
   try {
     const saved = await saveLead(lead);
     const mailed = await sendGmail(lead);
-    res.status(200).json({ ok: true, saved, mail: mailed });
+
+    // Kópia klientovi (zhrnutie konverzácie) — zlyhanie nezhodí celý dopyt.
+    let clientMail = null;
+    const clientEmail = String(body.clientCopy === true ? (data.email || data.em || '') : '').trim();
+    if (clientEmail && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(clientEmail)) {
+      const summary = textValue(body.summary || data.summary || '', 6000);
+      try {
+        await sendGmailRaw({
+          to: [clientEmail],
+          subject: 'Zhrnutie konzultácie - Aplan, projektová kancelária',
+          replyTo: normalizeRecipients(process.env.MAIL_TO || process.env.LEAD_TO)[0] || '',
+          text: `${summary}\n\n—\nAplan, projektová kancelária\n+421 915 775 480 · aplan@aplan.sk · www.aplan.sk\nOdpovede asistenta sú orientačné; presné posúdenie radi pripravíme na konzultácii.`,
+          html: `<div style="font-family:Arial,sans-serif;font-size:14px;color:#16181c;max-width:640px">
+            <h2 style="margin:0 0 14px">Zhrnutie vašej konzultácie</h2>
+            <div style="white-space:pre-wrap;line-height:1.6">${escapeHtml(summary)}</div>
+            <hr style="border:none;border-top:1px solid #e6e3dc;margin:20px 0">
+            <p style="color:#777;font-size:12px;line-height:1.6">Aplan, projektová kancelária<br>+421 915 775 480 · aplan@aplan.sk · www.aplan.sk<br>Odpovede asistenta sú orientačné; presné posúdenie radi pripravíme na konzultácii.</p>
+          </div>`
+        });
+        clientMail = { ok: true };
+      } catch (e) {
+        clientMail = { ok: false };
+      }
+    }
+
+    res.status(200).json({ ok: true, saved, mail: mailed, clientMail });
   } catch (e) {
     res.status(502).json({ error: 'lead_failed', detail: e.message.slice(0, 300) });
   }
