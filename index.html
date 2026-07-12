@@ -413,7 +413,7 @@ html{scroll-behavior:smooth}
 @media(max-width:520px){
   #ai-panel{right:0;bottom:0;width:100%;height:var(--ai-vh);max-height:var(--ai-vh);border-radius:0}
   #ai-launch{right:16px;bottom:16px}
-  #ai-teaser{right:16px;left:16px;max-width:none;bottom:92px}
+  #ai-teaser{display:none!important}
   .msg .mb{max-width:88%}
   .ai-compose input{font-size:16px}
 }
@@ -755,6 +755,7 @@ const teaserPhrases=[
 let teaserI=0,teaserTimer=null;
 function aiTeaserShow(){
   if(started)return;
+  if(isMobileChat())return; // na mobile teaser nezobrazujeme (len na PC)
   const t=document.getElementById('ai-teaser'),txt=document.getElementById('ai-teaser-txt');
   txt.textContent=teaserPhrases[0];t.classList.add('show');
   teaserTimer=setInterval(()=>{
