@@ -3,29 +3,23 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Aplan AI asistent — test</title>
+<title>Aplan AI</title>
 <meta name="robots" content="noindex">
 <style>
 *{box-sizing:border-box}
-body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#F4F4F1;color:#141414;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
-main{max-width:560px;padding:40px 24px;text-align:center}
-.k{font:700 11px sans-serif;letter-spacing:.3em;text-transform:uppercase;color:#8C8C83;margin-bottom:14px}
-h1{font:700 26px/1.25 sans-serif;letter-spacing:-.01em;margin:0 0 10px}
-p{font:500 14px/1.65 sans-serif;color:#6E6E66;margin:0 0 22px}
-code{display:block;background:#141414;color:#EDEDE6;border-radius:10px;padding:14px 16px;font:500 12px/1.6 ui-monospace,Menlo,Consolas,monospace;text-align:left;overflow-x:auto;white-space:pre}
-.sub{font:500 11.5px sans-serif;color:#8C8C83;margin-top:14px}
+body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#EDEDEB;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
+main{text-align:center;padding:24px}
+svg{width:64px;height:64px;margin-bottom:26px}
+code{display:block;background:#141414;color:#EDEDE6;border-radius:10px;padding:16px 20px;font:500 12.5px/1.7 ui-monospace,Menlo,Consolas,monospace;text-align:left;white-space:pre;overflow-x:auto}
 </style>
 </head>
 <body>
 <main>
-  <div class="k">Aplan AI · testovacia stránka</div>
-  <h1>Asistent beží cez embed.js</h1>
-  <p>Vpravo dole je widget vložený rovnako, ako bude na ostrom webe — jedným skriptom, v izolovanom iframe (nekoliduje so štýlmi stránky):</p>
+  <svg viewBox="0 0 40 40" fill="none"><path d="M6 36 L15.2 5 L24.8 5 L34 36 L27.6 36 L20 10.8 L12.4 36 Z" fill="none" stroke="#141414" stroke-width="2.4"/></svg>
   <code>&lt;script
   src="https://aplan-kappa.vercel.app/embed.js?v=20260712-1"
   defer
 &gt;&lt;/script&gt;</code>
-  <div class="sub">Tento riadok stačí vložiť do &lt;head&gt; alebo pred &lt;/body&gt; na aplan.sk.</div>
 </main>
 <script src="/embed.js?v=20260712-1" defer></script>
 </body>
