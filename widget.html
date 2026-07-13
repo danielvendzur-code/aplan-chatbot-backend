@@ -38,13 +38,17 @@ body{font-family:var(--font);background:var(--bg);color:var(--ink);-webkit-font-
 body.ai-locked{overflow:hidden;position:fixed;width:100%;left:0;right:0}
 
 /* ============ TEASER BUBLINA ============ */
-#ai-teaser{position:fixed;right:20px;bottom:104px;z-index:99998;width:302px;background:var(--paper);color:var(--ink);border:1px solid var(--line-2);box-shadow:0 18px 46px rgba(20,20,20,.16);border-radius:14px;padding:14px 16px 15px;font:600 13px/1.5 var(--font);opacity:0;transform:translateY(10px);pointer-events:none;transition:all .3s ease;cursor:pointer}
-.tz-h{display:flex;align-items:center;gap:9px;margin-bottom:8px;padding-right:22px}
-.tz-logo{display:flex}.tz-logo svg{width:17px;height:17px}
-.tz-h b{font:800 11px var(--font);letter-spacing:.2em}
-.tz-on{margin-left:auto;display:inline-flex;align-items:center;gap:5px;font:600 10.5px var(--font);color:var(--muted)}
+#ai-teaser{position:fixed;right:20px;bottom:104px;z-index:99998;width:326px;background:var(--paper);color:var(--ink);border:1px solid var(--line-2);box-shadow:0 18px 48px rgba(20,20,20,.15);border-radius:14px;padding:15px 17px 15px;font:500 13px/1.55 var(--font);opacity:0;transform:translateY(10px);pointer-events:none;transition:all .3s ease;cursor:pointer}
+#ai-teaser:hover{transform:translateY(-2px);box-shadow:0 22px 54px rgba(20,20,20,.19)}
+.tz-h{display:flex;align-items:center;gap:9px;margin-bottom:9px;padding-right:24px}
+.tz-logo{display:flex}.tz-logo svg{width:18px;height:18px}
+.tz-h b{font:800 11px var(--font);letter-spacing:.22em}
+.tz-on{margin-left:auto;display:inline-flex;align-items:center;gap:6px;font:600 10.5px var(--font);color:var(--muted)}
 .tz-on i{width:7px;height:7px;border-radius:50%;background:#52c989}
-#ai-teaser-txt{color:var(--ink-3)}
+#ai-teaser-txt{color:var(--ink-2);display:block;min-height:40px}
+.tz-cta{display:inline-flex;align-items:center;gap:7px;margin-top:9px;font:800 10px var(--font);letter-spacing:.16em;text-transform:uppercase;color:#141414;border-bottom:1px solid #141414;padding-bottom:2px}
+.tz-cta svg{width:12px;height:12px;transition:transform .22s}
+#ai-teaser:hover .tz-cta svg{transform:translateX(3px)}
 #ai-teaser.show{opacity:1;transform:none;pointer-events:auto}
 #ai-teaser:hover{border-color:var(--line-2)}
 #ai-teaser b{color:var(--accent-2)}
@@ -63,8 +67,8 @@ body.ai-locked{overflow:hidden;position:fixed;width:100%;left:0;right:0}
 #ai-panel.open{opacity:1;pointer-events:auto;transform:none}
 
 .ai-head{position:relative;display:flex;align-items:center;gap:13px;padding:16px 16px;background:var(--ink);color:#fff}
-.ai-head .av{width:46px;height:46px;border-radius:13px;background:var(--ink-2);border:1px solid rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;flex:0 0 auto}
-.ai-head .av .mono{width:30px;height:30px}
+.ai-head .av{width:34px;display:flex;align-items:center;flex:0 0 auto}
+.ai-head .av .mono{width:34px;height:34px}
 .ai-head .ht{flex:1;min-width:0}
 .ai-head .ht .t{font:700 14.5px var(--font);letter-spacing:.22em;text-transform:uppercase}
 .ai-head .ht .s{display:flex;align-items:center;gap:6px;font:600 11.5px var(--font);color:rgba(255,255,255,.6);margin-top:3px}
@@ -114,7 +118,6 @@ body.ai-locked{overflow:hidden;position:fixed;width:100%;left:0;right:0}
 /* drobné dizajnové vylepšenia */
 .caret{display:inline-block;width:2px;height:1em;background:var(--accent);vertical-align:-2px;margin-left:1px;animation:caretB .8s steps(1) infinite}
 @keyframes caretB{50%{opacity:0}}
-.ai-head::after{content:"";position:absolute;left:0;right:0;bottom:0;height:2px;background:rgba(255,255,255,.16)}
 #ai-launch:hover{box-shadow:0 18px 42px rgba(22,24,28,.34),0 0 0 3px rgba(17,17,17,.18)}
 .msg.user .mb{background:linear-gradient(135deg,var(--ink) 0%,var(--ink-3) 100%)}
 .chip:active,.qa:active,.foot-resv:active{transform:scale(.97)}
@@ -123,27 +126,32 @@ body.ai-locked{overflow:hidden;position:fixed;width:100%;left:0;right:0}
 .think-row .col2{display:flex;flex-direction:column;gap:7px;max-width:84%}
 .think{font:600 11.5px/1.4 var(--font);color:var(--muted-2);font-style:italic;transition:opacity .17s;padding-left:2px}
 /* Calendly priamo v okne */
-.cal-embed{margin-top:8px;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#fff;height:min(600px,calc(var(--ai-vh) - 268px));box-shadow:0 6px 20px rgba(22,24,28,.06);transition:height .25s ease}
+.cal-embed{margin-top:8px;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#fff;height:min(600px,calc(var(--ai-vh) - 268px));box-shadow:0 6px 20px rgba(22,24,28,.06);transition:height .25s ease;position:relative}
 .cal-embed-load{padding:44px 20px;text-align:center;color:var(--muted);font:600 13px/1.6 var(--font)}
-.cal-load-sub{font:500 11.5px var(--font);color:var(--muted-2)}
+.cal-load-sub{font:500 11px/1.5 var(--font);color:var(--muted-2)}
 .cal-spin{display:block;width:22px;height:22px;margin:0 auto 12px;border:2.5px solid var(--line);border-top-color:var(--ink);border-radius:50%;animation:calspin .8s linear infinite}
 @keyframes calspin{to{transform:rotate(360deg)}}
+/* prekrytie počas načítavania Calendly */
+.cal-overlay{position:absolute;inset:0;z-index:5;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:26px 22px;transition:opacity .4s ease}
+.cal-overlay.hide{opacity:0;pointer-events:none}
+.cal-skel{display:grid;grid-template-columns:repeat(7,15px);gap:5px;margin-bottom:18px}
+.cal-skel i{width:15px;height:15px;border-radius:4px;background:var(--soft);animation:skelPulse 1.6s ease infinite}
+.cal-skel i:nth-child(3n){animation-delay:.25s}
+.cal-skel i:nth-child(4n){background:var(--line)}
+@keyframes skelPulse{0%,100%{opacity:.45}50%{opacity:1}}
+.cal-load-title{font:800 10.5px var(--font);letter-spacing:.14em;text-transform:uppercase;color:#141414;margin-bottom:6px;transition:opacity .25s}
+.cal-overlay .cal-load-sub{max-width:240px;margin:0 auto}
+.cal-prog{width:150px;height:2px;background:var(--soft);margin-top:16px;overflow:hidden}
+.cal-prog i{display:block;height:100%;width:36%;background:#141414;animation:progSlide 1.4s ease-in-out infinite}
+@keyframes progSlide{0%{transform:translateX(-110%)}100%{transform:translateX(430%)}}
 .cal-embed iframe{border:0;width:100%;height:100%}
 /* wipe efekt — biela sa nasunie zľava, text sčernie */
-.foot-resv,.btn-go,.confirm-send,.ai-compose .send,.chip.primary{position:relative;overflow:hidden;z-index:0}
-.foot-resv::after,.btn-go::after,.confirm-send::after,.ai-compose .send::after,.chip.primary::after{content:"";position:absolute;inset:0;background:#fff;transform:scaleX(0);transform-origin:left;transition:transform .3s cubic-bezier(.4,0,.2,1);z-index:-1;border-radius:inherit}
-.foot-resv:hover::after,.btn-go:hover::after,.confirm-send:hover::after,.ai-compose .send:hover::after,.chip.primary:hover::after{transform:scaleX(1)}
-.foot-resv:hover,.btn-go:hover,.confirm-send:hover,.chip.primary:hover{color:#141414;box-shadow:inset 0 0 0 1.5px #141414}
-.foot-resv:hover svg{color:#141414;stroke:#141414}
-.ai-compose .send svg{transition:transform .25s,stroke .2s}
-.ai-compose .send:hover{box-shadow:inset 0 0 0 1.5px #141414}
-.ai-compose .send:hover svg{stroke:#141414;transform:translate(1.5px,-1.5px)}
 @media(max-width:520px){.cal-embed{height:min(560px,calc(var(--ai-vh) - 232px))}}
 @keyframes bounce{0%,60%,100%{transform:translateY(0);opacity:.5}30%{transform:translateY(-5px);opacity:1}}
 
 /* chips */
 .chips{display:flex;flex-wrap:wrap;gap:8px;margin:2px 0 16px 39px;animation:rise .3s ease both}
-.chip{background:#fff;border:1px solid var(--line-2);color:var(--ink);border-radius:11px;padding:10px 16px;font:600 13px var(--font);letter-spacing:.01em;cursor:pointer;transition:border-color .18s,box-shadow .18s,transform .18s;box-shadow:0 1px 2px rgba(20,20,20,.04)}
+.chip{background:#fff;border:1px solid var(--line-2);color:var(--ink);border-radius:11px;padding:10px 16px;font:600 13px var(--font);letter-spacing:.01em;cursor:pointer;transition:border-color .35s ease,box-shadow .35s ease,transform .35s cubic-bezier(.25,.6,.25,1),background-color .35s ease,color .35s ease;box-shadow:0 1px 2px rgba(20,20,20,.04)}
 .chip:hover{border-color:#141414;transform:translateY(-2px);box-shadow:0 8px 20px rgba(20,20,20,.13)}
 .chip .ic{width:15px;height:15px;opacity:.7}
 .chip.primary{background:#141414;color:#fff;border-color:#141414}
@@ -152,27 +160,34 @@ body.ai-locked{overflow:hidden;position:fixed;width:100%;left:0;right:0}
 /* úvodné menu — premiový zoznam */
 .menu{margin:6px 0 12px 0;animation:rise .3s ease both}
 .menu-card{border:1px solid var(--line);border-radius:16px;overflow:hidden;background:var(--paper);box-shadow:0 8px 24px rgba(22,24,28,.07)}
-.mrow{position:relative;display:flex;align-items:center;gap:12px;width:100%;text-align:left;border:0;border-bottom:1px solid var(--line);background:var(--paper);padding:13px 15px;cursor:pointer;transition:background .18s;font-family:var(--font)}
+.mrow{position:relative;display:flex;align-items:center;gap:12px;width:100%;text-align:left;border:0;border-bottom:1px solid var(--line);background:var(--paper);padding:12px 15px;cursor:pointer;transition:background .2s;font-family:var(--font)}
 .mrow:last-child{border-bottom:0}
-.mrow::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent);transform:scaleY(0);transform-origin:center;transition:transform .2s;border-radius:0 3px 3px 0}
+.mrow::before{content:"";position:absolute;left:0;top:0;bottom:0;width:2px;background:#141414;transform:scaleY(0);transform-origin:center;transition:transform .22s;border-radius:0}
 .mrow:hover{background:var(--soft-2)}
 .mrow:hover::before{transform:scaleY(1)}
-.mn{font:700 11px var(--font);letter-spacing:.14em;color:var(--muted-2);width:28px;flex:0 0 auto;transition:color .18s}
-.mrow:hover .mn{color:#141414}
-.mrow .mt2{flex:1;min-width:0}
+.mi{width:34px;height:34px;flex:0 0 auto;border:1px solid var(--line-2);border-radius:10px;background:var(--soft-2);display:flex;align-items:center;justify-content:center;transition:background .22s,border-color .22s,transform .22s}
+.mi svg{width:17px;height:17px;stroke:#141414;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;transition:stroke .22s}
+.mrow:hover .mi{background:#141414;border-color:#141414;transform:translateY(-1px)}
+.mrow:hover .mi svg{stroke:#fff}
+.mrow .mt2{flex:1;min-width:0;transition:transform .22s}
+.mrow:hover .mt2{transform:translateX(2px)}
 .mrow .mt2 b{display:block;font:700 13.5px var(--font);color:var(--ink);letter-spacing:-.01em}
 .mrow .mt2 span{display:block;font:600 11px var(--font);color:var(--muted);margin-top:1px}
-.mrow .mchev{width:15px;height:15px;color:var(--line-2);flex:0 0 auto;transition:transform .18s,color .18s}
-.mrow:hover .mchev{color:var(--accent-2);transform:translateX(3px)}
-.mrow.featured{background:#141414}
-.mrow.featured:hover{background:#2A2A27}
-.mrow.featured::before{transform:scaleY(1);background:#fff}
-.mrow.featured .mn{color:rgba(255,255,255,.55)}
-.mrow.featured:hover .mn{color:#fff}
+.mrow .mchev{width:15px;height:15px;color:var(--line-2);flex:0 0 auto;transition:transform .22s,color .22s}
+.mrow:hover .mchev{color:#141414;transform:translateX(4px)}
+/* — „Preveďte ma" — čierny editorial riadok — */
+.mrow.featured{background:#141414;padding:15px}
+.mrow.featured::before{background:#fff}
+.mrow.featured:hover{background:#1D1D1B}
+.mrow.featured .mi{background:transparent;border-color:rgba(255,255,255,.32)}
+.mrow.featured .mi svg{stroke:#fff}
+.mrow.featured:hover .mi{background:#fff;border-color:#fff;transform:translateY(-1px)}
+.mrow.featured:hover .mi svg{stroke:#141414}
 .mrow.featured .mt2 b{color:#fff}
-.mrow.featured .mt2 span{color:rgba(255,255,255,.62)}
-.mrow.featured .mchev{color:#fff}
-.mrow.featured:hover .mchev{transform:translateX(3px)}
+.mrow.featured .mt2 span{color:rgba(255,255,255,.6)}
+.mrow.featured .mchev{color:rgba(255,255,255,.85)}
+.mrow.featured:hover .mchev{color:#fff;transform:translateX(4px)}
+@media(prefers-reduced-motion:reduce){.mrow.featured::after,.mi,.mrow .mt2,.mrow .mchev{transition:none!important}}
 .menu .resv{margin-bottom:11px}
 .resv{display:flex;align-items:center;gap:12px;border:1px solid var(--line);background:var(--paper);border-radius:13px;padding:12px 13px;cursor:pointer;transition:all .15s}
 .resv:hover{border-color:var(--accent);box-shadow:0 6px 18px rgba(22,24,28,.06)}
@@ -277,9 +292,9 @@ body.ai-locked{overflow:hidden;position:fixed;width:100%;left:0;right:0}
 .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
 .cal-dow{font:700 9.5px var(--font);color:var(--muted-2);text-align:center;text-transform:uppercase;padding:2px 0 5px}
 .cal-day{aspect-ratio:1;border:1px solid transparent;border-radius:10px;background:transparent;font:600 12.5px var(--font);color:var(--line-2);cursor:default;display:flex;align-items:center;justify-content:center;transition:all .14s}
-.cal-day.free{color:var(--ink);font-weight:700;cursor:pointer}
-.cal-day.free:hover{background:var(--accent-soft)}
-.cal-day.on{background:#fff;box-shadow:inset 0 0 0 2px #141414;color:#141414;font-weight:800}
+.cal-day.free{background:#EDF3EF;color:#2F5F46;font-weight:800;cursor:pointer}
+.cal-day.free:hover{background:#DCEBE2}
+.cal-day.on{background:#141414;color:#fff;font-weight:800}
 .cal-times{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
 .cal-time{border:1.5px solid var(--line);border-radius:11px;padding:11px 0;text-align:center;font:700 13px var(--font);color:var(--ink);cursor:pointer;background:var(--paper);transition:all .14s}
 .cal-time:hover{border-color:var(--accent);background:var(--accent-soft)}
@@ -333,6 +348,19 @@ body.ai-locked{overflow:hidden;position:fixed;width:100%;left:0;right:0}
   .msg .mb{max-width:88%}
   .ai-compose input{font-size:16px}
 }
+/* — inverzia farieb + tenká linka zo stredu pod textom (variant D) — */
+.foot-resv,.btn-go,.confirm-send,.ai-compose .send,.chip.primary{transition:background-color .3s ease,color .3s ease,box-shadow .3s ease}
+.foot-resv:hover,.btn-go:hover,.confirm-send:hover,.chip.primary:hover{background:#fff;color:#141414;box-shadow:0 0 0 1px #141414}
+.foot-resv svg{transition:color .3s ease,stroke .3s ease}
+.foot-resv:hover svg{color:#141414;stroke:#141414}
+.foot-resv span{position:relative}
+.foot-resv span::after,.btn-go::after,.confirm-send::after{content:"";position:absolute;left:50%;bottom:-3px;width:100%;height:1.5px;background:#141414;transform:translateX(-50%) scaleX(0);transform-origin:center;transition:transform .65s cubic-bezier(.22,.61,.36,1)}
+.btn-go,.confirm-send{position:relative}
+.btn-go::after,.confirm-send::after{width:42%;bottom:8px}
+.foot-resv:hover span::after,.btn-go:hover::after,.confirm-send:hover::after{transform:translateX(-50%) scaleX(1)}
+.ai-compose .send svg{transition:transform .3s cubic-bezier(.25,.6,.25,1),stroke .3s ease}
+.ai-compose .send:hover{background:#fff;box-shadow:0 0 0 1px #141414}
+.ai-compose .send:hover svg{stroke:#141414;transform:translate(1.5px,-1.5px)}
 html,body{background:transparent!important}
 </style>
 </head>
@@ -346,6 +374,7 @@ html,body{background:transparent!important}
   <button class="x" aria-label="Zavrieť" onclick="event.stopPropagation();aiTeaserClose()">×</button>
   <div class="tz-h"><span class="tz-logo"></span><b>APLAN AI</b><span class="tz-on"><i></i>Online</span></div>
   <span id="ai-teaser-txt"></span>
+  <span class="tz-cta">Opýtať sa<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
 </div>
 
 <button id="ai-launch" aria-label="Otvoriť asistenta" onclick="aiOpen()">
@@ -418,9 +447,8 @@ window.addEventListener('message',function(e){
 /* ——— Logo: chevron „A" z reálneho loga Aplan + „i" s bodkou => „AI" verzia značky ——— */
 function mono(c){
   c=c||'#fff';
-  return `<svg class="mono" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M6 36 L15.2 5 L24.8 5 L34 36 L27.6 36 L20 10.8 L12.4 36 Z"
-          fill="none" stroke="${c}" stroke-width="2.4" stroke-linejoin="miter"/>
+  return `<svg class="mono" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" shape-rendering="geometricPrecision">
+    <path d="M16.9 5.5h6.2L34.2 34.5h-6L20 12.6 11.8 34.5h-6Z" fill="${c}"/>
   </svg>`;
 }
 document.getElementById('launchmono').outerHTML = mono('#fff');
@@ -587,9 +615,10 @@ function aiOpen(){
   if(!started){ started=true; if(!restoreConvo()) welcome(); }
 }
 const teaserPhrases=[
-  'Potrebujete pomôcť s vybavením vecí na úrade?',
-  'Zistite, aké kroky a dokumenty potrebujete.',
-  'AI asistent vám pomôže pripraviť sa na úradné vybavovanie.'
+  'Plánujete stavať alebo rekonštruovať? Prevediem vás povoleniami krok za krokom.',
+  'Povedzte mi svoj zámer — pripravím vám kroky aj zoznam dokumentov.',
+  'Odpovede na úradné otázky hneď, bez čakania na úrade.',
+  'Konzultáciu s projektantom si rezervujete na pár klikov.'
 ];
 let teaserI=0,teaserTimer=null;
 function aiTeaserShow(){
@@ -622,18 +651,26 @@ function aiClose(){
 function welcome(){ renderMenu(); }
 function menu(){ body.querySelectorAll('.menu,.chips').forEach(x=>x.remove()); renderMenu(); }
 function aiHome(){ menu(); }
+/* minimalistické ikony menu — tenká linka, monochróm (ladí s webom) */
+const MICO={
+  need:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.6"/><path d="M15.2 8.8 13.3 13.3 8.8 15.2 10.7 10.7Z"/></svg>',
+  uradne:'<svg viewBox="0 0 24 24"><path d="M7 3.8h7.2L18.5 8v12.2H7Z"/><path d="M14 3.8V8h4.5M9.8 12h5.4M9.8 15.4h5.4"/></svg>',
+  kom:'<svg viewBox="0 0 24 24"><rect x="3.8" y="5.6" width="16.4" height="12.8" rx="2"/><path d="m4.6 6.8 7.4 5.6 7.4-5.6"/></svg>',
+  podklady:'<svg viewBox="0 0 24 24"><rect x="5.4" y="4.6" width="13.2" height="16" rx="2"/><path d="M9 9.6h6M9 13h6M9 16.4h3.4"/></svg>',
+  about:'<svg viewBox="0 0 24 24"><path d="M5.5 20 10.6 4.6h2.8L18.5 20h-2.7L12 7.5 8.2 20Z"/></svg>'
+};
 function renderMenu(){
   const wrap=el('<div class="menu"></div>');
   const card=el('<div class="menu-card"></div>');
   const rows=[
-    ['Preveďte ma','Neviem, čo potrebujem — sprievodca zámerom',I.search,'need',true],
-    ['Úradné postupy','Stavebné povolenie, ohlásenie, kolaudácia, prístavba',I.steps,'uradne'],
-    ['Komunikácia s úradom','Čo a ako napísať, ako reagovať na výzvu úradu',I.mail,'kom'],
-    ['Aké podklady potrebujem?','Prehľadný checklist dokumentov',I.list,'podklady'],
-    ['Čo robí Aplan','V skratke, ako vám vieme pomôcť',I.info,'about']
+    ['Preveďte ma','Neviem, čo potrebujem — sprievodca zámerom',MICO.need,'need',true],
+    ['Úradné postupy','Stavebné povolenie, ohlásenie, kolaudácia, prístavba',MICO.uradne,'uradne'],
+    ['Komunikácia s úradom','Čo a ako napísať, ako reagovať na výzvu úradu',MICO.kom,'kom'],
+    ['Aké podklady potrebujem?','Prehľadný checklist dokumentov',MICO.podklady,'podklady'],
+    ['Čo robí Aplan','V skratke, ako vám vieme pomôcť',MICO.about,'about']
   ];
-  rows.forEach((it,idx)=>{
-    const b=el(`<button class="mrow ${it[4]?'featured':''}"><span class="mn">${String(idx+1).padStart(2,'0')}</span><div class="mt2"><b>${it[0]}</b><span>${it[1]}</span></div><svg class="mchev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="square"><path d="M9 6l6 6-6 6"/></svg></button>`);
+  rows.forEach((it)=>{
+    const b=el(`<button class="mrow ${it[4]?'featured':''}"><span class="mi">${it[2]}</span><div class="mt2"><b>${it[0]}</b><span>${it[1]}</span></div><svg class="mchev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>`);
     b.onclick=()=>{wrap.remove();userMsg(it[0]);typing(()=>topic(it[3]));};
     card.appendChild(b);
   });
@@ -1062,21 +1099,32 @@ function loadCalendly(cb){
   const s=document.createElement('script'); s.src='https://assets.calendly.com/assets/external/widget.js'; s.async=true;
   s.onload=done; s.onerror=()=>cb(true); document.head.appendChild(s);
 }
+let calOverlayTimer=null;
+function calOverlayDone(){
+  if(calOverlayTimer){clearInterval(calOverlayTimer);calOverlayTimer=null;}
+  const ov=calHost&&calHost.querySelector('.cal-overlay');
+  if(ov&&!ov.classList.contains('hide')){ ov.classList.add('hide'); setTimeout(()=>ov.remove(),450); }
+}
 function calendlyInline(){
   botMsg('<b>Rezervácia konzultácie</b> — vyberte si termín priamo tu. Po potvrdení príde e-mail vám aj nám.');
-  const m=botMsg('<div class="cal-embed" data-cal-embed><div class="cal-embed-load"><span class="cal-spin"></span>Načítavam rezervačný kalendár…<br><span class="cal-load-sub">Môže to trvať pár sekúnd, prosíme o strpenie.</span></div></div>',{persist:false});
+  const skel='<span class="cal-skel">'+'<i></i>'.repeat(21)+'</span>';
+  const m=botMsg('<div class="cal-embed" data-cal-embed><div class="cal-overlay">'+skel+'<div class="cal-load-title" data-cal-msg>Pripájam kalendár</div><div class="cal-load-sub">Načítanie voľných termínov trvá zvyčajne pár sekúnd.</div><div class="cal-prog"><i></i></div></div></div>',{persist:false});
   const host=m.querySelector('[data-cal-embed]'); calHost=host;
+  const msgs=['Pripájam kalendár','Načítavam voľné termíny','Ešte chvíľku, už to bude'];
+  let mi=0; const msgEl=host.querySelector('[data-cal-msg]');
+  calOverlayTimer=setInterval(()=>{ mi=(mi+1)%msgs.length; if(msgEl){ msgEl.style.opacity=0; setTimeout(()=>{ msgEl.textContent=msgs[mi]; msgEl.style.opacity=1; },240);} },2600);
   loadCalendly((err)=>{
-    if(err||!window.Calendly){ host.innerHTML='<div class="cal-embed-load">Kalendár sa nepodarilo načítať. <a href="'+esc(CFG.calendly)+'" target="_blank" rel="noopener">Otvoriť rezerváciu v novom okne</a>.</div>'; return; }
-    host.innerHTML='';
-    const url=CFG.calendly+(CFG.calendly.indexOf('?')<0?'?':'&')+'hide_gdpr_banner=1&hide_event_type_details=1&primary_color=141414';
+    if(err||!window.Calendly){ calOverlayDone(); host.innerHTML='<div class="cal-embed-load">Kalendár sa nepodarilo načítať. <a href="'+esc(CFG.calendly)+'" target="_blank" rel="noopener">Otvoriť rezerváciu v novom okne</a>.</div>'; return; }
+    const url=CFG.calendly+(CFG.calendly.indexOf('?')<0?'?':'&')+'hide_gdpr_banner=1&hide_event_type_details=1&primary_color=3E7C5A';
     window.Calendly.initInlineWidget({url:url, parentElement:host});
+    setTimeout(calOverlayDone,14000); /* poistka */
   });
   next([{t:'Radšej napíšem dopyt',ic:I.send,fn:flowLead}]);
 }
 /* potvrdenie rezervácie z Calendly (postMessage) */
 window.addEventListener('message',function(e){
   if(!e||!e.data||typeof e.data!=='object') return;
+  if(typeof e.data.event==='string' && e.data.event.indexOf('calendly.')===0) calOverlayDone();
   if(e.data.event==='calendly.page_height' && calHost && e.data.payload && e.data.payload.height){
     var ph=parseInt(e.data.payload.height,10);
     if(ph>240) calHost.style.height=Math.min(ph+4, Math.max(380, window.innerHeight-268))+'px';
