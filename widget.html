@@ -779,12 +779,13 @@ const TT={
   /* Preveďte ma tým, čo robíte */
   about(){
     botMsg(infoBlock('Čo robí Aplan', miniList([
-      'Kompletné vedenie projektu — od prvej skice po odovzdanie stavby, so všetkými profesiami pod jednou strechou.',
-      'Architektonická štúdia — individuálny návrh, ktorý spája architektúru, praktické fungovanie a rozpočet.',
-      'Projektová dokumentácia — od zámeru v súlade s legislatívou až po realizačný projekt, podľa ktorého sa plynulo stavia.',
-      'Povoľovací proces — komunikáciu s úradmi a elektronické povoľovanie preberáme na seba, investora v konaní zastupujeme.',
-      'Stavebný manažment a autorský dozor — dohliadame, aby výsledok zodpovedal návrhu až po odovzdanie.',
-      'Urbanizmus — štúdie, zastavovacie plány a podklady pre rozvoj území.'
+      'Komplexné projekty všetkých druhov — rodinné domy, rekonštrukcie, prístavby aj administratívne budovy a väčšie celky.',
+      'Architektonická štúdia — prvý návrh priestoru: dispozícia, hmota a charakter stavby, individuálne k miestu aj rozpočtu.',
+      'Stavebný zámer a projekt stavby — dokumentácia pre povolenie aj realizačný projekt, podľa ktorého sa stavia bez kompromisov.',
+      'Všetky profesie pod jednou strechou — ako generálny projektant koordinujeme statiku, TZB, elektro, požiarnu ochranu aj geodeta.',
+      'Povoľovací proces — komunikáciu s úradmi a elektronické povoľovanie preberáme na seba, klienta procesom vedieme.',
+      'Stavebný manažment, autorský dozor a interiér — dohliadame na stavbu až do konca a priestor dotiahneme do detailu.',
+      'Urbanizmus a územné plánovanie — štúdie, zastavovacie plány a podklady pre rozvoj území.'
     ])+'<span class="mini">Viac ako 30 rokov skúseností — jeden partner od vízie k realizácii.</span>'));
     next([{t:'Úradné postupy',ic:I.steps,fn:()=>topic('uradne')},RESV]);
   },
@@ -1421,7 +1422,7 @@ const KB=[
  body:'Závisí od typu a rozsahu — štúdia býva rýchlejšia, kompletná dokumentácia pre povolenie trvá dlhšie kvôli koordinácii profesií. <b>Orientačný</b> termín radi povieme po krátkej konzultácii a po posúdení podkladov.',
  rel:['act:cal','act:lead']},
 {id:'cena',cat:'faq',title:'Koľko stojí projekt?',tags:'cena koľko stojí cenník cenová ponuka náklady projekt rozpočet',
- body:'Presnú cenu vopred nesľubujeme — závisí od typu stavby, rozsahu projektu, lokality, stavu dokumentov, potreby profesií a vyjadrení. <b>Orientačne</b> vieme ukázať náročnosť prípadu a pripraviť cenovú ponuku po konzultácii.',
+ body:'Presnú cenu vopred nesľubujeme — cenotvorba je individuálna a vzniká až podľa konkrétneho miesta stavby, vašich predstáv a prvotného návrhu, ktorý určí rozsah projektu. Platí sa zvyčajne postupne, po jednotlivých častiach, a kolky aj správne poplatky vieme mať zahrnuté v cene. <b>Prvá a často aj druhá konzultácia je bezplatná.</b><span class="mini">Orientačnú ponuku pripravíme po konzultácii a prvotnom návrhu.</span>',
  rel:['act:need','act:cal','act:lead']},
 {id:'obsah',cat:'faq',title:'Čo všetko projekt obsahuje?',tags:'čo obsahuje projekt rozsah projektu čo dostanem výkresy',
  body:'Projekt zvyčajne obsahuje architektonicko-stavebnú časť (situácia, pôdorysy, rezy, pohľady, technická správa) a podľa potreby profesie — statiku, elektro, zdravotechniku, kúrenie a energetické hodnotenie.<span class="mini">Konkrétny rozsah prispôsobíme zámeru.</span>',
@@ -1430,8 +1431,11 @@ const KB=[
  body:'Pri mnohých rodinných domoch je stavba svojpomocou možná, no zvyčajne sa vyžaduje stavebný dozor. Projekt a podklady pripravíme tak, aby ste mali jasné zadanie.<span class="mini">Podmienky závisia od konkrétnej stavby a úradu.</span>',
  rel:['topic:dozor','act:cal']},
 {id:'urady',cat:'faq',title:'Vybavíte mi úrady a povolenie?',tags:'vybavíte úrady povolenie za mňa inžiniering zastúpenie na úrade povoľovací proces',
- body:'Áno — súčasťou našich služieb je aj <b>povoľovací proces</b>: vieme zastrešiť vyjadrenia dotknutých orgánov a vybavenie povolení, aby ste mali jedného partnera počas celej výstavby. Rozsah dohodneme podľa vášho prípadu.<span class="mini">Schválenie závisí od úradu — negarantujeme výsledok, ale celý proces vedieme za vás.</span>',
+ body:'Áno — súčasťou našich služieb je aj <b>povoľovací proces</b>: komunikáciu s úradmi a dotknutými orgánmi aj obstaranie povolení v elektronickom stavebnom portáli preberáme na seba. Riešime územné rozhodnutie aj stavebné konanie — máte jedného partnera počas celej výstavby a procesom vás vedieme my.<span class="mini">Schválenie závisí od úradu — nič negarantujeme, ale celý proces vedieme za vás.</span>',
  rel:['act:cal','act:lead','act:steps']},
+{id:'specialne',cat:'faq',title:'Riešite legalizáciu a zmeny stavieb?',tags:'legalizácia čierna stavba dodatočné povolenie zmena stavby zmena účelu užívania geodet projektant',
+ body:'Áno — berieme aj dodatočnú legalizáciu (tzv. čierne stavby), zmenu stavby počas výstavby aj zmenu účelu užívania. Ak je to potrebné, pripravíme aj dokumentáciu pre legalizáciu či zmeny. V našej skupine pôsobia všetky profesie vrátane geodeta, takže ak nemáte projektanta ani geodeta, vieme to zastrešiť.<span class="mini">Podmienky a rozsah posúdime podľa konkrétneho prípadu.</span>',
+ rel:['act:cal','act:lead']},
 {id:'podklady',cat:'faq',title:'Aké podklady od vás potrebujem?',tags:'aké podklady potrebujem čo mám priniesť dokumenty od klienta',
  body:'Najčastejšie: list vlastníctva, katastrálnu mapu / parcelné číslo, informáciu z obce, fotky pozemku alebo stavby, prípadne pôvodnú dokumentáciu a predstavu o dispozícii.<span class="mini">Presný zoznam vám pripraví checklist podľa typu prípadu.</span>',
  rel:['act:checklist','act:pkg']},
