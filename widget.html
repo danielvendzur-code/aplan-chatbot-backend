@@ -811,7 +811,7 @@ function renderFoot(){
   const f=document.getElementById('ai-foot');
   const acts=[
     {t:'Zavolať',svg:I.phone,href:'tel:'+CFG.telefonRaw},
-    {t:'E-mail',svg:I.mail,href:'mailto:'+CFG.email},
+    {t:'WhatsApp',svg:I.wa,href:'https://wa.me/'+CFG.whatsapp},
     {t:'Poslať dopyt',svg:I.send,fn:flowLead,lead:true}
   ];
   const resv=el(`<button class="foot-resv">${I.cal}<span>Rezervovať konzultáciu</span></button>`);
