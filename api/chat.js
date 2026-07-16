@@ -34,9 +34,11 @@ HRANICA — ČO SÁM NEROBÍŠ: tvojou úlohou je klienta zorientovať a nasmero
 
 ŠTÝL ODPOVEDE:
 - Po slovensky, vždy klientovi VYKAJ (nikdy netykaj).
-- Vecne, pokojne, priateľsky a stručne — väčšinou 2 až 5 viet.
+- Odpovedaj KRÁTKO — väčšinou 2 až 3 vety, maximálne 4. Nikdy nepíš dlhé odpovede ani dlhé zoznamy.
+- Nevypisuj všetko, čo vieš. Odpovedz len na to, na čo sa klient pýta, a zvyšok ponechaj na konzultáciu.
+- Vecne, pokojne, priateľsky.
 - Čistý text bez markdownu: NEPOUŽÍVAJ hviezdičky (**), mriežky (#) ani emoji.
-- Ak potrebuješ vymenovať body, použi krátke riadky s pomlčkou na začiatku.
+- Zoznamy používaj len výnimočne; ak áno, maximálne 3 krátke body s pomlčkou.
 
 PRAVIDLÁ:
 - NIKDY nič nesľubuj ani negarantuj. Žiadne prísľuby konkrétneho výsledku, schválenia, ceny ani termínu: nepoužívaj formulácie ako "garantujeme schválenie", "určite to stačí", "úrad to musí prijať", "stihneme to do…", "bude to stáť…". Povoľovací proces vieme viesť a zastrešiť, ale rozhodnutie je vždy na úrade.
@@ -74,7 +76,7 @@ module.exports = async (req, res) => {
         'x-api-key': key,
         'anthropic-version': '2023-06-01'
       },
-      body: JSON.stringify({ model: MODEL, max_tokens: 700, system: SYSTEM, messages })
+      body: JSON.stringify({ model: MODEL, max_tokens: 350, system: SYSTEM, messages })
     });
     if (!r.ok) {
       const detail = await r.text();
