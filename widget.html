@@ -381,7 +381,7 @@ html,body{background:transparent!important}
 <!-- ============ AI ASISTENT ============ -->
 <div id="ai-teaser" onclick="aiOpen()">
   <button class="x" aria-label="Zavrieť" onclick="event.stopPropagation();aiTeaserClose()">×</button>
-  <div class="tz-h"><span class="tz-logo"></span><span class="tz-on"><i></i>Online</span></div>
+  <div class="tz-h"><span class="tz-logo"></span><b>Aplan Asistent</b><span class="tz-on"><i></i>Online</span></div>
   <span id="ai-teaser-txt"></span>
   <span class="tz-cta">Opýtať sa<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
 </div>
@@ -453,11 +453,11 @@ window.addEventListener('message',function(e){
   if(d.aplanEnv){ hostMobile=!!d.mobile; document.documentElement.classList.toggle('host-desktop',!hostMobile); document.documentElement.classList.toggle('host-mobile',hostMobile); try{ updateAiViewportHeight(); }catch(err){} }
 });
 
-/* ——— Logo: chevron „A" z reálneho loga Aplan + „i" s bodkou => „AI" verzia značky ——— */
+/* ——— Logo: skutočné „A" z loga Aplan (obrysové A s výrezom) ——— */
 function mono(c){
   c=c||'#fff';
-  return `<svg class="mono" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" shape-rendering="geometricPrecision">
-    <path d="M16.9 5.5h6.2L34.2 34.5h-6L20 12.6 11.8 34.5h-6Z" fill="${c}"/>
+  return `<svg class="mono" viewBox="0 0 1180 1480" xmlns="http://www.w3.org/2000/svg" shape-rendering="geometricPrecision">
+    <path d="M452.62,0.186l-452.62,1479.81l230.17,0l351.715,-1318.81l362.083,1318.81l236.032,0l-452.683,-1479.81l-274.697,0Z" fill="${c}"/>
   </svg>`;
 }
 document.getElementById('launchmono').outerHTML = mono('#141414');
