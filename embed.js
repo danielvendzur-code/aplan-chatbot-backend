@@ -1,4 +1,4 @@
-/* Aplan AI asistent — embed skript.
+/* Aplan Asistent — embed skript.
    Vloženie na web (jeden riadok):
    <script src="https://aplan-kappa.vercel.app/embed.js?v=20260712-1" defer></script>
    Widget beží v izolovanom iframe — nekoliduje so štýlmi stránky. */
@@ -15,9 +15,9 @@
   var VER = '20260712-1';
   var f = document.createElement('iframe');
   f.src = base + '/widget.html?v=' + VER;
-  f.title = 'Aplan AI asistent';
+  f.title = 'Aplan Asistent';
   f.setAttribute('allowtransparency', 'true');
-  f.setAttribute('aria-label', 'Aplan AI asistent');
+  f.setAttribute('aria-label', 'Aplan Asistent');
   f.allow = 'clipboard-write';
 
   var st = f.style;

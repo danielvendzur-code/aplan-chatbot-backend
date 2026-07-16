@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Aplan AI asistent</title>
+<title>Aplan Asistent</title>
 <meta name="description" content="Webový AI asistent pre projektovú kanceláriu Aplan. Prevedie klienta úradnými postupmi, dokumentmi a komunikáciou s úradom a umožní rezervovať konzultáciu.">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
@@ -57,10 +57,10 @@ body.ai-locked{overflow:hidden;position:fixed;width:100%;left:0;right:0}
 #ai-teaser .x{position:absolute;right:8px;top:8px;width:22px;height:22px;border:0;background:var(--soft);color:var(--muted);border-radius:50%;font-size:13px;cursor:pointer;line-height:1}
 
 /* ============ LAUNCHER ============ */
-#ai-launch{position:fixed;right:20px;bottom:20px;z-index:100000;width:62px;height:62px;border:0;border-radius:16px;background:#111;box-shadow:0 14px 34px rgba(22,24,28,.28);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform .22s ease,box-shadow .22s ease,opacity .2s}
-#ai-launch:hover{transform:translateY(-2px);box-shadow:0 18px 42px rgba(22,24,28,.34)}
+#ai-launch{position:fixed;right:20px;bottom:20px;z-index:100000;width:70px;height:70px;border:1px solid rgba(20,20,20,.12);border-radius:18px;background:#fff;box-shadow:0 14px 34px rgba(22,24,28,.22);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform .22s ease,box-shadow .22s ease,opacity .2s}
+#ai-launch:hover{transform:translateY(-2px);box-shadow:0 18px 42px rgba(22,24,28,.28)}
 #ai-launch.open{opacity:0;pointer-events:none;transform:scale(.85)}
-#ai-launch .mono{width:34px;height:34px}
+#ai-launch .mono{width:40px;height:40px}
 
 /* ============ CHAT PANEL ============ */
 #ai-panel{position:fixed;right:20px;bottom:20px;z-index:99999;width:444px;height:min(764px,calc(var(--ai-vh) - 40px));background:var(--paper);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);display:flex;flex-direction:column;overflow:hidden;opacity:0;pointer-events:none;transform:translateY(20px) scale(.96);transform-origin:bottom right;transition:opacity .22s,transform .34s cubic-bezier(.2,1.2,.2,1)}
@@ -70,7 +70,7 @@ body.ai-locked{overflow:hidden;position:fixed;width:100%;left:0;right:0}
 .ai-head .av{width:34px;display:flex;align-items:center;flex:0 0 auto}
 .ai-head .av .mono{width:34px;height:34px}
 .ai-head .ht{flex:1;min-width:0}
-.ai-head .ht .t{font:700 14.5px var(--font);letter-spacing:.22em;text-transform:uppercase}
+.ai-head .ht .t{font:700 14.5px var(--font);letter-spacing:.14em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ai-head .ht .s{display:flex;align-items:center;gap:6px;font:600 11.5px var(--font);color:rgba(255,255,255,.6);margin-top:3px}
 .ai-head .ht .s i{width:7px;height:7px;border-radius:50%;background:#52c989;display:inline-block}
 .ai-head .ht .s b{color:var(--accent);font-weight:700}
@@ -328,7 +328,7 @@ body.ai-locked{overflow:hidden;position:fixed;width:100%;left:0;right:0}
 .foot-resv{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;border:0;border-radius:12px;letter-spacing:.03em;background:var(--ink);color:#fff;padding:13px;font:800 14px var(--font);cursor:pointer;transition:background .18s}
 .foot-resv svg{width:18px;height:18px;color:#fff;stroke:#fff}
 .ai-contacts{display:flex;gap:8px}
-.qa{flex:1;justify-content:center;border:1px solid var(--line-2);background:var(--soft-2);border-radius:11px;padding:11px 8px;font:700 13px var(--font);color:var(--ink);cursor:pointer;display:inline-flex;align-items:center;gap:7px;text-decoration:none;transition:all .15s}
+.qa{flex:1;justify-content:center;border:1px solid var(--line-2);background:var(--soft-2);border-radius:11px;padding:11px 8px;font:700 13px var(--font);color:var(--ink);cursor:pointer;display:inline-flex;align-items:center;gap:7px;text-decoration:none;white-space:nowrap;transition:all .15s}
 .qa:hover{border-color:var(--accent);background:var(--accent-soft);color:var(--ink)}
 .qa svg{width:17px;height:17px;opacity:.8}
 /* .qa.lead — zámerne bez odlíšenia, rovnaký vzhľad ako ostatné kontakty */
@@ -347,6 +347,15 @@ body.ai-locked{overflow:hidden;position:fixed;width:100%;left:0;right:0}
   html:not(.host-desktop) #ai-teaser{display:none!important}
   .msg .mb{max-width:88%}
   .ai-compose input{font-size:16px}
+  /* spodná časť tenšia — vizuálne vyvážená s hlavičkou */
+  .ai-head{padding:13px 14px}
+  .ai-compose{padding:9px 12px 9px}
+  .ai-compose input{padding:10px 13px}
+  .ai-foot{padding:0 12px 9px;gap:7px}
+  .foot-resv{padding:11px;font-size:13px}
+  .foot-resv svg{width:16px;height:16px}
+  .qa{padding:9px 6px;font-size:12.5px}
+  .qa svg{width:15px;height:15px}
 }
 /* — inverzia farieb + tenká linka zo stredu pod textom (variant D) — */
 .foot-resv,.btn-go,.confirm-send,.ai-compose .send,.chip.primary{transition:background-color .3s ease,color .3s ease,box-shadow .3s ease}
@@ -372,7 +381,7 @@ html,body{background:transparent!important}
 <!-- ============ AI ASISTENT ============ -->
 <div id="ai-teaser" onclick="aiOpen()">
   <button class="x" aria-label="Zavrieť" onclick="event.stopPropagation();aiTeaserClose()">×</button>
-  <div class="tz-h"><span class="tz-logo"></span><b>APLAN AI</b><span class="tz-on"><i></i>Online</span></div>
+  <div class="tz-h"><span class="tz-logo"></span><span class="tz-on"><i></i>Online</span></div>
   <span id="ai-teaser-txt"></span>
   <span class="tz-cta">Opýtať sa<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
 </div>
@@ -381,12 +390,12 @@ html,body{background:transparent!important}
   <span class="mono" id="launchmono"></span>
 </button>
 
-<div id="ai-panel" role="dialog" aria-label="Aplan AI asistent">
+<div id="ai-panel" role="dialog" aria-label="Aplan Asistent">
   <div class="ai-head">
     <div class="av"><span class="mono" id="headmono"></span></div>
     <div class="ht">
-      <div class="t">Aplan AI</div>
-      <div class="s"><i></i> Asistent je online</div>
+      <div class="t">Aplan Asistent</div>
+      <div class="s"><i></i> Online</div>
     </div>
     <div class="ai-hactions">
       <button class="hbtn" onclick="aiHome()" aria-label="Hlavné menu" title="Hlavné menu">
@@ -412,7 +421,7 @@ html,body{background:transparent!important}
 
 <script>
 /* =========================================================
-   APLAN AI — webový asistent projektovej kancelárie.
+   APLAN ASISTENT — webový asistent projektovej kancelárie.
    Sprevádza klienta úradnými postupmi, dokumentmi a
    komunikáciou s úradom a umožňuje rezerváciu konzultácie.
    ========================================================= */
@@ -451,7 +460,7 @@ function mono(c){
     <path d="M16.9 5.5h6.2L34.2 34.5h-6L20 12.6 11.8 34.5h-6Z" fill="${c}"/>
   </svg>`;
 }
-document.getElementById('launchmono').outerHTML = mono('#fff');
+document.getElementById('launchmono').outerHTML = mono('#141414');
 document.getElementById('headmono').outerHTML = mono('#fff');
 var bm=document.getElementById('brandmono'); if(bm) bm.innerHTML = mono('#111');
 var tzl=document.querySelector('.tz-logo'); if(tzl) tzl.innerHTML = mono('#141414');
@@ -812,7 +821,7 @@ function renderFoot(){
   const acts=[
     {t:'Zavolať',svg:I.phone,href:'tel:'+CFG.telefonRaw},
     {t:'WhatsApp',svg:I.wa,href:'https://wa.me/'+CFG.whatsapp},
-    {t:'Poslať dopyt',svg:I.send,fn:flowLead,lead:true}
+    {t:'Dopyt',svg:I.send,fn:flowLead,lead:true}
   ];
   const resv=el(`<button class="foot-resv">${I.cal}<span>Rezervovať konzultáciu</span></button>`);
   resv.onclick=footResv;
@@ -1594,7 +1603,7 @@ function smartChips(question,reply){
 }
 /* Bod 4 — pošli klientovi (aj firme) zhrnutie konverzácie e-mailom */
 function buildSummary(){
-  const lines=['Zhrnutie vašej konverzácie s Aplan AI asistentom:',''];
+  const lines=['Zhrnutie vašej konverzácie s asistentom Aplan:',''];
   aiHistory.forEach(m=>{
     if(m.role==='user') lines.push('Otázka: '+m.content);
     else lines.push('Odpoveď: '+m.content,'');
@@ -1663,15 +1672,28 @@ input.addEventListener('keydown',e=>{if(e.key==='Enter')aiUserSend();});
 
 /* ——— animovaný placeholder v inpute (jemný typewriter) ——— */
 const phPhrases=[
-  'Čo potrebujem k stavebnému povoleniu?',
-  'Viete mi vysvetliť postup pri komunikácii s úradom?',
-  'Aké podklady si mám pripraviť?',
+  'Čo potrebujem k povoleniu?',
+  'Ako komunikovať s úradom?',
+  'Aké podklady si pripraviť?',
   'Dá sa objednať konzultácia?'
 ];
-let phI=0,phChar=0,phDir=1;
+let phI=0,phChar=0,phDir=1,phCtx=null;
+/* zmestí sa text (aj s kurzorom) do aktuálnej šírky inputu? */
+function phFits(text){
+  try{
+    const cs=getComputedStyle(input);
+    if(!phCtx) phCtx=document.createElement('canvas').getContext('2d');
+    phCtx.font=`${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
+    const avail=input.clientWidth-parseFloat(cs.paddingLeft)-parseFloat(cs.paddingRight)-4;
+    return phCtx.measureText(text).width<=avail;
+  }catch(e){ return text.length<=26; }
+}
 function phTick(){
   if(document.activeElement===input || input.value){ input.placeholder='Napíšte správu…'; return setTimeout(phTick,1000); }
   const full=phPhrases[phI];
+  const cand=full.slice(0,Math.max(0,phChar+phDir));
+  // ak by ďalší znak pretiekol input, radšej začni mazať (text sa nikdy neoreže)
+  if(phDir>0 && phChar>1 && !phFits(cand+'│')){ phDir=-1; return setTimeout(phTick,1100); }
   phChar+=phDir;
   input.placeholder=full.slice(0,Math.max(0,phChar))+(phChar<full.length&&phChar>0?'│':'');
   if(phChar>=full.length){ phDir=-1; return setTimeout(phTick,1800); }
