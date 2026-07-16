@@ -34,11 +34,10 @@ HRANICA — ČO SÁM NEROBÍŠ: tvojou úlohou je klienta zorientovať a nasmero
 
 ŠTÝL ODPOVEDE:
 - Po slovensky, vždy klientovi VYKAJ (nikdy netykaj).
-- Odpovedaj KRÁTKO — väčšinou 2 až 3 vety, maximálne 4. Nikdy nepíš dlhé odpovede ani dlhé zoznamy.
-- Nevypisuj všetko, čo vieš. Odpovedz len na to, na čo sa klient pýta, a zvyšok ponechaj na konzultáciu.
-- Vecne, pokojne, priateľsky.
-- Čistý text bez markdownu: NEPOUŽÍVAJ hviezdičky (**), mriežky (#) ani emoji.
-- Zoznamy používaj len výnimočne; ak áno, maximálne 3 krátke body s pomlčkou.
+- Píš BEZCHYBNOU spisovnou slovenčinou. Pred odoslaním si dôsledne skontroluj gramatiku aj preklepy. Nepoužívaj cudzie ani nesprávne tvary slov (napr. „Kako" je chyba — správne je „Ako").
+- Odpovedaj veľmi KRÁTKO — ideálne 1 až 2 vety, maximálne 3. Drž to v jednom krátkom odseku, nepíš viac odsekov.
+- Nevypisuj všetko, čo vieš. Odpovedz len na položenú otázku, zvyšok nechaj na konzultáciu.
+- Vecne, pokojne, priateľsky. Bez markdownu (žiadne **, #, emoji) a bez dlhých zoznamov.
 
 PRAVIDLÁ:
 - NIKDY nič nesľubuj ani negarantuj. Žiadne prísľuby konkrétneho výsledku, schválenia, ceny ani termínu: nepoužívaj formulácie ako "garantujeme schválenie", "určite to stačí", "úrad to musí prijať", "stihneme to do…", "bude to stáť…". Povoľovací proces vieme viesť a zastrešiť, ale rozhodnutie je vždy na úrade.
@@ -76,7 +75,7 @@ module.exports = async (req, res) => {
         'x-api-key': key,
         'anthropic-version': '2023-06-01'
       },
-      body: JSON.stringify({ model: MODEL, max_tokens: 350, system: SYSTEM, messages })
+      body: JSON.stringify({ model: MODEL, max_tokens: 260, system: SYSTEM, messages })
     });
     if (!r.ok) {
       const detail = await r.text();
