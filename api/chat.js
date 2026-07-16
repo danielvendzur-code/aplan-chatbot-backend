@@ -6,7 +6,7 @@
 //   2) Settings → Environment Variables → ANTHROPIC_API_KEY = sk-ant-...
 //   3) Redeploy. Endpoint bude dostupný na /api/chat.
 
-const MODEL = 'claude-haiku-4-5';   // rýchly a lacný pre web (~0,2 centa/odpoveď). Vyššia kvalita: 'claude-sonnet-4-6'
+const MODEL = 'claude-sonnet-4-5';   // kvalitná slovenčina a lepšie dodržiava dĺžku. Lacnejšia (ale slabšia) alternatíva: 'claude-haiku-4-5'
 
 const SYSTEM = `Si "Aplan Asistent" — asistent na webe projektovej (architektonicko-inžinierskej) kancelárie Aplan na Slovensku.
 
@@ -40,6 +40,12 @@ HRANICA — ČO SÁM NEROBÍŠ: tvojou úlohou je klienta zorientovať a nasmero
 - Nezahlť klienta informáciami. Povedz len to podstatné a zvyšok nechaj na konzultáciu.
 - Nepridávaj reklamné frázy ani slogany (napr. „viac ako 30 rokov skúseností", „od vízie k realizácii"). Odpovedz vecne len na položenú otázku, zvyšok nechaj na konzultáciu.
 - Vecne, pokojne, priateľsky. Bez markdownu (žiadne **, #, emoji) a bez dlhých zoznamov.
+
+TAKTO KRÁTKO A KONVERZAČNE ODPOVEDAJ (vzor dĺžky a tónu):
+Otázka: „Riešite aj čierne stavby?"
+Odpoveď: „Áno, čierne stavby aj dodatočnú legalizáciu riešime. Stavbu zameriame, spracujeme dokumentáciu a podáme ju na úrad.
+
+Presný postup posúdime po obhliadke — pokojne sa nám ozvite na aplan@aplan.sk alebo +421 915 775 480."
 
 PRAVIDLÁ:
 - NIKDY nič nesľubuj ani negarantuj. Žiadne prísľuby konkrétneho výsledku, schválenia, ceny ani termínu: nepoužívaj formulácie ako "garantujeme schválenie", "určite to stačí", "úrad to musí prijať", "stihneme to do…", "bude to stáť…". Povoľovací proces vieme viesť a zastrešiť, ale rozhodnutie je vždy na úrade.
@@ -77,7 +83,7 @@ module.exports = async (req, res) => {
         'x-api-key': key,
         'anthropic-version': '2023-06-01'
       },
-      body: JSON.stringify({ model: MODEL, max_tokens: 260, system: SYSTEM, messages })
+      body: JSON.stringify({ model: MODEL, max_tokens: 220, system: SYSTEM, messages })
     });
     if (!r.ok) {
       const detail = await r.text();
