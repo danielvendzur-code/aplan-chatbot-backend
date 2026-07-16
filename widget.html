@@ -41,9 +41,9 @@ body.ai-locked{overflow:hidden;position:fixed;width:100%;left:0;right:0}
 #ai-teaser{position:fixed;right:20px;bottom:104px;z-index:99998;width:326px;background:var(--paper);color:var(--ink);border:1px solid var(--line-2);box-shadow:0 18px 48px rgba(20,20,20,.15);border-radius:14px;padding:15px 17px 15px;font:500 13px/1.55 var(--font);opacity:0;transform:translateY(10px);pointer-events:none;transition:all .3s ease;cursor:pointer}
 #ai-teaser:hover{transform:translateY(-2px);box-shadow:0 22px 54px rgba(20,20,20,.19)}
 .tz-h{display:flex;align-items:center;gap:9px;margin-bottom:9px;padding-right:24px}
-.tz-h b{display:inline-flex;align-items:center;line-height:1;font:800 11px var(--font);letter-spacing:.14em;text-transform:uppercase}
-.tz-h .wm-a{display:inline-flex;align-items:center;height:1.05em;margin-right:.1em}
-.tz-h .wm-a svg{height:100%;width:auto;display:block}
+.tz-h b{font:800 11px var(--font);letter-spacing:.14em;text-transform:uppercase}
+.tz-h .wm-a{display:inline-block;vertical-align:baseline;margin-right:.05em}
+.tz-h .wm-a svg{height:1em;width:auto;display:block}
 .tz-on{margin-left:auto;display:inline-flex;align-items:center;gap:6px;font:600 10.5px var(--font);color:var(--muted)}
 .tz-on i{width:7px;height:7px;border-radius:50%;background:#52c989}
 #ai-teaser-txt{color:var(--ink-2);display:block;min-height:40px}
@@ -69,9 +69,9 @@ body.ai-locked{overflow:hidden;position:fixed;width:100%;left:0;right:0}
 
 .ai-head{position:relative;display:flex;align-items:center;gap:13px;padding:16px 16px;background:var(--ink);color:#fff}
 .ai-head .ht{flex:1;min-width:0}
-.ai-head .ht .t{display:flex;align-items:center;line-height:1;font:700 14.5px var(--font);letter-spacing:.14em;text-transform:uppercase;white-space:nowrap;overflow:hidden}
-.ai-head .ht .t .wm-a{display:inline-flex;align-items:center;height:.98em;margin-right:.1em;flex:0 0 auto}
-.ai-head .ht .t .wm-a svg{height:100%;width:auto;display:block}
+.ai-head .ht .t{font:700 14.5px var(--font);letter-spacing:.14em;text-transform:uppercase;white-space:nowrap;overflow:hidden}
+.ai-head .ht .t .wm-a{display:inline-block;vertical-align:baseline;margin-right:.05em}
+.ai-head .ht .t .wm-a svg{height:.9em;width:auto;display:block}
 .ai-head .ht .s{display:flex;align-items:center;gap:6px;font:600 11.5px var(--font);color:rgba(255,255,255,.6);margin-top:3px}
 .ai-head .ht .s i{width:7px;height:7px;border-radius:50%;background:#52c989;display:inline-block}
 .ai-head .ht .s b{color:var(--accent);font-weight:700}
@@ -453,17 +453,18 @@ window.addEventListener('message',function(e){
   if(d.aplanEnv){ hostMobile=!!d.mobile; document.documentElement.classList.toggle('host-desktop',!hostMobile); document.documentElement.classList.toggle('host-mobile',hostMobile); try{ updateAiViewportHeight(); }catch(err){} }
 });
 
-/* ——— Logo: skutočné „A" z loga Aplan (obrysové A s výrezom) ——— */
-function mono(c){
+/* ——— Logo: plné „A" značky Aplan. vb = voliteľný orezaný viewBox pre wordmark ——— */
+function mono(c, vb){
   c=c||'#fff';
-  return `<svg class="mono" viewBox="0 0 1180 1480" xmlns="http://www.w3.org/2000/svg" shape-rendering="geometricPrecision">
-    <path d="M452.62,0.186l-452.62,1479.81l230.17,0l351.715,-1318.81l362.083,1318.81l236.032,0l-452.683,-1479.81l-274.697,0Z" fill="${c}"/>
+  return `<svg class="mono" viewBox="${vb||'0 0 40 40'}" xmlns="http://www.w3.org/2000/svg" shape-rendering="geometricPrecision">
+    <path d="M16.9 5.5h6.2L34.2 34.5h-6L20 12.6 11.8 34.5h-6Z" fill="${c}"/>
   </svg>`;
 }
+var WM_VB='5.8 5.5 28.4 29';   /* orezaný na tvar „A" — pre wordmark zarovnaný na baseline */
 document.getElementById('launchmono').outerHTML = mono('#141414');
-document.getElementById('headmono').innerHTML = mono('#fff');
+document.getElementById('headmono').innerHTML = mono('#fff', WM_VB);
 var bm=document.getElementById('brandmono'); if(bm) bm.innerHTML = mono('#111');
-var tzl=document.getElementById('tzmono'); if(tzl) tzl.innerHTML = mono('#141414');
+var tzl=document.getElementById('tzmono'); if(tzl) tzl.innerHTML = mono('#141414', WM_VB);
 var ctam=document.getElementById('ctamono'); if(ctam) ctam.innerHTML = mono();
 
 /* ——— domovská stránka: menu po scrolle + reveal animácie ——— */
