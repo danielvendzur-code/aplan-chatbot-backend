@@ -57,10 +57,10 @@ body.ai-locked{overflow:hidden;position:fixed;width:100%;left:0;right:0}
 #ai-teaser .x{position:absolute;right:8px;top:8px;width:22px;height:22px;border:0;background:var(--soft);color:var(--muted);border-radius:50%;font-size:13px;cursor:pointer;line-height:1}
 
 /* ============ LAUNCHER ============ */
-#ai-launch{position:fixed;right:20px;bottom:20px;z-index:100000;width:62px;height:62px;border:0;border-radius:16px;background:#111;box-shadow:0 14px 34px rgba(22,24,28,.28);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform .22s ease,box-shadow .22s ease,opacity .2s}
-#ai-launch:hover{transform:translateY(-2px);box-shadow:0 18px 42px rgba(22,24,28,.34)}
+#ai-launch{position:fixed;right:20px;bottom:20px;z-index:100000;width:70px;height:70px;border:1px solid rgba(20,20,20,.12);border-radius:18px;background:#fff;box-shadow:0 14px 34px rgba(22,24,28,.22);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform .22s ease,box-shadow .22s ease,opacity .2s}
+#ai-launch:hover{transform:translateY(-2px);box-shadow:0 18px 42px rgba(22,24,28,.28)}
 #ai-launch.open{opacity:0;pointer-events:none;transform:scale(.85)}
-#ai-launch .mono{width:34px;height:34px}
+#ai-launch .mono{width:40px;height:40px}
 
 /* ============ CHAT PANEL ============ */
 #ai-panel{position:fixed;right:20px;bottom:20px;z-index:99999;width:444px;height:min(764px,calc(var(--ai-vh) - 40px));background:var(--paper);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);display:flex;flex-direction:column;overflow:hidden;opacity:0;pointer-events:none;transform:translateY(20px) scale(.96);transform-origin:bottom right;transition:opacity .22s,transform .34s cubic-bezier(.2,1.2,.2,1)}
@@ -381,7 +381,7 @@ html,body{background:transparent!important}
 <!-- ============ AI ASISTENT ============ -->
 <div id="ai-teaser" onclick="aiOpen()">
   <button class="x" aria-label="Zavrieť" onclick="event.stopPropagation();aiTeaserClose()">×</button>
-  <div class="tz-h"><span class="tz-logo"></span><b>APLAN ASISTENT</b><span class="tz-on"><i></i>Online</span></div>
+  <div class="tz-h"><span class="tz-logo"></span><span class="tz-on"><i></i>Online</span></div>
   <span id="ai-teaser-txt"></span>
   <span class="tz-cta">Opýtať sa<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
 </div>
@@ -460,7 +460,7 @@ function mono(c){
     <path d="M16.9 5.5h6.2L34.2 34.5h-6L20 12.6 11.8 34.5h-6Z" fill="${c}"/>
   </svg>`;
 }
-document.getElementById('launchmono').outerHTML = mono('#fff');
+document.getElementById('launchmono').outerHTML = mono('#141414');
 document.getElementById('headmono').outerHTML = mono('#fff');
 var bm=document.getElementById('brandmono'); if(bm) bm.innerHTML = mono('#111');
 var tzl=document.querySelector('.tz-logo'); if(tzl) tzl.innerHTML = mono('#141414');
