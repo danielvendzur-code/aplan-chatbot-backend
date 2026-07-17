@@ -32,6 +32,35 @@ test('splits long compound sentences into short sentences', () => {
   }
 });
 
+test('repairs the real apartment-building reply permanently', () => {
+  const reply = formatReply(`**Bytovka je väčší projekt — to je presne vec na osobnú konzultáciu s architektom.**
+
+**Potrebujeme vedieť, koľko bytov plánujete, aká je parcela, kde sa nachádza a aké máte predstavy.**
+
+**Na základe týchto informácií vám architekt ukáže, ako by projekt vyzerať mohol a aký bude rozsah.**
+
+**Dokumentácie.**
+
+**Môžete nám napísať na aplan@aplan.sk, zavolať na 915 775 480 alebo si dohodnúť osobné stretnutie.**`);
+  const sentences = splitSentences(reply);
+
+  assert.equal(sentences.length, 4);
+  assert.doesNotMatch(reply, /\*\*|__|`/u);
+  assert.doesNotMatch(reply, /(?:^|\n\n)Dokumentácie\./u);
+  assert.match(reply, /rozsah dokumentácie\./u);
+  assert.match(reply, /\+421 915 775 480/u);
+  assert.ok(sentences.every(sentence => wordCount(sentence) <= MAX_WORDS_PER_SENTENCE), reply);
+});
+
+test('never hard-cuts a phrase when there is no natural sentence boundary', () => {
+  const reply = formatReply(
+    'Na základe dostupných informácií Vám architekt vysvetlí možné riešenie projektu a následne určí jeho presný rozsah dokumentácie.'
+  );
+
+  assert.match(reply, /presný rozsah dokumentácie\./u);
+  assert.doesNotMatch(reply, /rozsah\.\s+Dokumentácie\./u);
+});
+
 test('does not split an email address into extra sentences', () => {
   const reply = formatReply(
     'Napíšte nám na aplan@aplan.sk. Ozveme sa Vám s ďalším postupom. Rozsah posúdime podľa Vášho zámeru.'
