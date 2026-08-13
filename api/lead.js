@@ -3,6 +3,17 @@ const { hasKv, kvCommand, kvSetJson, kvGetJson, isAdmin, rateLimit, applyRateLim
 
 const INDEX_KEY = 'aplan:leads:index';
 const TTL_SECONDS = 60 * 60 * 24 * 365;
+const MAX_REQUEST_BYTES = 3_500_000;
+const MAX_ATTACHMENT_COUNT = 3;
+const MAX_ATTACHMENT_BYTES = 1_500_000;
+const MAX_TOTAL_ATTACHMENT_BYTES = 2_250_000;
+const DEFAULT_GMAIL_USER = 'dopyt.chatbot@gmail.com';
+const ALLOWED_ATTACHMENTS = new Map([
+  ['application/pdf', '.pdf'],
+  ['image/jpeg', '.jpg'],
+  ['image/png', '.png'],
+  ['image/webp', '.webp']
+]);
 
 function parseBody(req) {
   if (!req.body) return {};
@@ -20,8 +31,8 @@ function textValue(v, max = 2000) {
 function cleanLead(data) {
   const out = {};
   Object.keys(data || {}).forEach(k => {
-    if (k === 'conversation' || k === 'clientCopy') return;
-    out[k] = textValue(data[k], 4000);
+    if (['conversation', 'clientCopy', 'clientSubject', 'clientTitle', 'attachments'].includes(k)) return;
+    out[k] = textValue(data[k], 6000);
   });
   return out;
 }
@@ -34,12 +45,66 @@ function cleanConversation(value) {
     .map(m => ({ r: m.r, h: m.h.slice(0, 3000), t: textValue(m.t, 20) }));
 }
 
+function sanitizeFilename(value, mimeType) {
+  const fallbackExt = ALLOWED_ATTACHMENTS.get(mimeType) || '';
+  const raw = String(value || 'priloha')
+    .replace(/[\\/]+/g, '_')
+    .replace(/[\r\n\0]/g, '')
+    .trim()
+    .slice(0, 120);
+  const ascii = raw
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^A-Za-z0-9._ -]/g, '_')
+    .replace(/\s+/g, '_')
+    .replace(/_+/g, '_')
+    .replace(/^\.+/, '')
+    .slice(0, 100) || 'priloha';
+  const lower = ascii.toLowerCase();
+  const allowedExts = ['.pdf', '.jpg', '.jpeg', '.png', '.webp'];
+  const hasAllowedExt = allowedExts.some(ext => lower.endsWith(ext));
+  return hasAllowedExt ? ascii : `${ascii}${fallbackExt}`;
+}
+
+function cleanAttachments(value) {
+  if (value === undefined || value === null) return [];
+  if (!Array.isArray(value)) throw new Error('invalid_attachments');
+  if (value.length > MAX_ATTACHMENT_COUNT) throw new Error('too_many_attachments');
+
+  let total = 0;
+  return value.map((item, index) => {
+    if (!item || typeof item !== 'object') throw new Error('invalid_attachment');
+    const type = String(item.type || '').toLowerCase().trim();
+    if (!ALLOWED_ATTACHMENTS.has(type)) throw new Error('unsupported_attachment_type');
+
+    const content = String(item.content || '').replace(/\s+/g, '');
+    if (!content || content.length > Math.ceil(MAX_ATTACHMENT_BYTES * 4 / 3) + 16) {
+      throw new Error('attachment_too_large');
+    }
+    if (!/^[A-Za-z0-9+/]+={0,2}$/.test(content)) throw new Error('invalid_attachment_data');
+
+    const buffer = Buffer.from(content, 'base64');
+    if (!buffer.length || buffer.length > MAX_ATTACHMENT_BYTES) throw new Error('attachment_too_large');
+    total += buffer.length;
+    if (total > MAX_TOTAL_ATTACHMENT_BYTES) throw new Error('attachments_too_large');
+
+    return {
+      name: sanitizeFilename(item.name || `priloha-${index + 1}`, type),
+      type,
+      size: buffer.length,
+      content: buffer.toString('base64')
+    };
+  });
+}
+
 function leadText(lead) {
   const labels = Object.keys(lead.data).filter(k => lead.data[k]);
+  const files = (lead.attachmentMeta || []).map(a => `${a.name} (${Math.ceil(a.size / 1024)} kB)`);
   return [
-    `Novy dopyt z webu - Aplan`,
+    'Nový dopyt z webu - Aplan',
     '',
     ...labels.map(k => `${k}: ${lead.data[k]}`),
+    ...(files.length ? ['', 'Prílohy:', ...files.map(x => `- ${x}`)] : []),
     '',
     `sessionId: ${lead.sessionId || ''}`,
     `createdAt: ${lead.createdAt}`
@@ -51,25 +116,35 @@ function leadHtml(lead) {
     .filter(k => lead.data[k])
     .map(k => `<tr><td style="padding:6px 10px;border-bottom:1px solid #eee;color:#555">${escapeHtml(k)}</td><td style="padding:6px 10px;border-bottom:1px solid #eee"><b>${escapeHtml(lead.data[k])}</b></td></tr>`)
     .join('');
+  const files = (lead.attachmentMeta || []).map(a => `<li>${escapeHtml(a.name)} (${Math.ceil(a.size / 1024)} kB)</li>`).join('');
   return `<div style="font-family:Arial,sans-serif;font-size:14px;color:#16181c">
-    <h2 style="margin:0 0 12px">Novy dopyt z webu - Aplan</h2>
+    <h2 style="margin:0 0 12px">Nový dopyt z webu - Aplan</h2>
     <table style="border-collapse:collapse;width:100%;max-width:720px">${rows}</table>
-    <p style="color:#777;margin-top:14px">Session: ${escapeHtml(lead.sessionId || '')}<br>Cas: ${escapeHtml(lead.createdAt)}</p>
+    ${files ? `<p style="margin:14px 0 4px"><b>Prílohy:</b></p><ul>${files}</ul>` : ''}
+    <p style="color:#777;margin-top:14px">Session: ${escapeHtml(lead.sessionId || '')}<br>Čas: ${escapeHtml(lead.createdAt)}</p>
   </div>`;
 }
 
 function escapeHtml(s) {
-  return String(s).replace(/[&<>"]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
+  return String(s).replace(/[&<>\"]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
+}
+
+function safeHeader(value, max = 200) {
+  return String(value || '').replace(/[\r\n]+/g, ' ').trim().slice(0, max);
 }
 
 function encodeHeader(value) {
-  return /[^\x00-\x7F]/.test(value)
-    ? `=?UTF-8?B?${Buffer.from(value, 'utf8').toString('base64')}?=`
-    : value;
+  const safe = safeHeader(value);
+  return /[^\x00-\x7F]/.test(safe)
+    ? `=?UTF-8?B?${Buffer.from(safe, 'utf8').toString('base64')}?=`
+    : safe;
 }
 
 function normalizeRecipients(value) {
-  return String(value || '').split(',').map(x => x.trim()).filter(Boolean);
+  return String(value || '')
+    .split(',')
+    .map(x => x.trim())
+    .filter(x => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(x));
 }
 
 function smtpClient() {
@@ -132,7 +207,29 @@ async function smtpExpect(client, expected) {
   return response;
 }
 
-async function sendGmail(lead) {
+function wrapBase64(value) {
+  return String(value || '').match(/.{1,76}/g)?.join('\r\n') || '';
+}
+
+function alternativeMime(boundary, text, html) {
+  return [
+    `--${boundary}`,
+    'Content-Type: text/plain; charset=UTF-8',
+    'Content-Transfer-Encoding: 8bit',
+    '',
+    String(text),
+    '',
+    `--${boundary}`,
+    'Content-Type: text/html; charset=UTF-8',
+    'Content-Transfer-Encoding: 8bit',
+    '',
+    String(html).replace(/\r?\n/g, '\r\n'),
+    '',
+    `--${boundary}--`
+  ].join('\r\n');
+}
+
+async function sendGmail(lead, attachments = []) {
   const to = normalizeRecipients(process.env.MAIL_TO || process.env.LEAD_TO);
   if (!to.length) throw new Error('missing_mail_to');
   return sendGmailRaw({
@@ -140,44 +237,59 @@ async function sendGmail(lead) {
     subject: lead.data.predmet || 'Dopyt z webu - Aplan',
     replyTo: lead.data.email || lead.data.em || '',
     text: leadText(lead),
-    html: leadHtml(lead)
+    html: leadHtml(lead),
+    attachments
   });
 }
 
-async function sendGmailRaw({ to, subject, replyTo, text, html }) {
-  const user = process.env.GMAIL_USER;
+async function sendGmailRaw({ to, subject, replyTo, text, html, attachments = [] }) {
+  const user = safeHeader(process.env.GMAIL_USER || DEFAULT_GMAIL_USER);
   const password = process.env.GMAIL_APP_PASSWORD;
   if (!user) throw new Error('missing_gmail_user');
   if (!password) throw new Error('missing_gmail_app_password');
   if (!to.length) throw new Error('missing_recipient');
 
-  const boundary = `aplan-${Date.now()}-${Math.random().toString(36).slice(2)}`;
-  text = String(text).replace(/^\./gm, '..');
+  const safeReplyTo = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(replyTo || '').trim()) ? String(replyTo).trim() : '';
+  const from = safeHeader(process.env.MAIL_FROM || `APLAN AI asistent <${user}>`, 240);
+  const altBoundary = `aplan-alt-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  const mixedBoundary = `aplan-mix-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  const hasAttachments = attachments.length > 0;
   const headers = [
-    `From: ${process.env.MAIL_FROM || `Aplan chatbot <${user}>`}`,
+    `From: ${from}`,
     `To: ${to.join(', ')}`,
     `Subject: ${encodeHeader(subject)}`,
-    ...(replyTo ? [`Reply-To: ${replyTo}`] : []),
+    ...(safeReplyTo ? [`Reply-To: ${safeReplyTo}`] : []),
     'MIME-Version: 1.0',
-    `Content-Type: multipart/alternative; boundary="${boundary}"`
+    hasAttachments
+      ? `Content-Type: multipart/mixed; boundary="${mixedBoundary}"`
+      : `Content-Type: multipart/alternative; boundary="${altBoundary}"`
   ];
-  const message = [
-    headers.join('\r\n'),
-    '',
-    `--${boundary}`,
-    'Content-Type: text/plain; charset=UTF-8',
-    'Content-Transfer-Encoding: 8bit',
-    '',
-    text,
-    '',
-    `--${boundary}`,
-    'Content-Type: text/html; charset=UTF-8',
-    'Content-Transfer-Encoding: 8bit',
-    '',
-    html.replace(/\r?\n/g, '\r\n'),
-    '',
-    `--${boundary}--`
-  ].join('\r\n').replace(/\r\n\./g, '\r\n..');
+
+  let body;
+  if (!hasAttachments) {
+    body = alternativeMime(altBoundary, text, html);
+  } else {
+    const parts = [
+      `--${mixedBoundary}`,
+      `Content-Type: multipart/alternative; boundary="${altBoundary}"`,
+      '',
+      alternativeMime(altBoundary, text, html)
+    ];
+    for (const attachment of attachments) {
+      parts.push(
+        `--${mixedBoundary}`,
+        `Content-Type: ${attachment.type}; name="${attachment.name}"`,
+        'Content-Transfer-Encoding: base64',
+        `Content-Disposition: attachment; filename="${attachment.name}"`,
+        '',
+        wrapBase64(attachment.content)
+      );
+    }
+    parts.push(`--${mixedBoundary}--`);
+    body = parts.join('\r\n');
+  }
+
+  const message = `${headers.join('\r\n')}\r\n\r\n${body}`.replace(/\r?\n\./g, '\r\n..');
 
   const client = smtpClient();
   try {
@@ -202,7 +314,7 @@ async function sendGmailRaw({ to, subject, replyTo, text, html }) {
     await smtpExpect(client, 250);
     client.write('QUIT');
     await smtpExpect(client, 221);
-    return { provider: 'gmail_smtp', to };
+    return { provider: 'gmail_smtp', from: user, to, attachmentCount: attachments.length };
   } finally {
     client.close();
   }
@@ -250,7 +362,7 @@ module.exports = async (req, res) => {
   }
 
   const contentLength = Number(req.headers['content-length'] || 0);
-  if (Number.isFinite(contentLength) && contentLength > 100000) {
+  if (Number.isFinite(contentLength) && contentLength > MAX_REQUEST_BYTES) {
     res.status(413).json({ error: 'payload_too_large' });
     return;
   }
@@ -269,6 +381,14 @@ module.exports = async (req, res) => {
     return;
   }
 
+  let attachments;
+  try {
+    attachments = cleanAttachments(body.attachments);
+  } catch (e) {
+    res.status(400).json({ error: e.message || 'invalid_attachments' });
+    return;
+  }
+
   const now = new Date().toISOString();
   const id = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
   const lead = {
@@ -277,29 +397,39 @@ module.exports = async (req, res) => {
     sessionId: textValue(body.sessionId, 120),
     page: textValue(body.page, 500),
     data,
-    conversation: cleanConversation(body.conversation)
+    conversation: cleanConversation(body.conversation),
+    attachmentMeta: attachments.map(({ name, type, size }) => ({ name, type, size }))
   };
 
   try {
     const saved = await saveLead(lead);
-    const mailed = await sendGmail(lead);
+    const mailed = await sendGmail(lead, attachments);
 
-    // Kópia klientovi (zhrnutie konverzácie) — zlyhanie nezhodí celý dopyt.
     let clientMail = null;
     const clientEmail = String(body.clientCopy === true ? (data.email || data.em || '') : '').trim();
     if (clientEmail && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(clientEmail)) {
-      const summary = textValue(body.summary || data.summary || '', 6000);
+      const summary = textValue(body.summary || data.summary || '', 12000);
+      const clientSubject = textValue(body.clientSubject, 160) || (
+        data.predmet === 'Projektový štartovací balík'
+          ? 'Projektový štartovací balík - Aplan'
+          : 'Zhrnutie konzultácie - Aplan, projektová kancelária'
+      );
+      const clientTitle = textValue(body.clientTitle, 120) || (
+        data.predmet === 'Projektový štartovací balík'
+          ? 'Váš projektový štartovací balík'
+          : 'Zhrnutie vašej konzultácie'
+      );
       try {
         await sendGmailRaw({
           to: [clientEmail],
-          subject: 'Zhrnutie konzultácie - Aplan, projektová kancelária',
-          replyTo: normalizeRecipients(process.env.MAIL_TO || process.env.LEAD_TO)[0] || '',
-          text: `${summary}\n\n—\nAplan, projektová kancelária\n+421 915 775 480 · aplan@aplan.sk · www.aplan.sk\nOdpovede asistenta sú orientačné; presné posúdenie radi pripravíme na konzultácii.`,
-          html: `<div style="font-family:Arial,sans-serif;font-size:14px;color:#16181c;max-width:640px">
-            <h2 style="margin:0 0 14px">Zhrnutie vašej konzultácie</h2>
-            <div style="white-space:pre-wrap;line-height:1.6">${escapeHtml(summary)}</div>
-            <hr style="border:none;border-top:1px solid #e6e3dc;margin:20px 0">
-            <p style="color:#777;font-size:12px;line-height:1.6">Aplan, projektová kancelária<br>+421 915 775 480 · aplan@aplan.sk · www.aplan.sk<br>Odpovede asistenta sú orientačné; presné posúdenie radi pripravíme na konzultácii.</p>
+          subject: clientSubject,
+          replyTo: normalizeRecipients(process.env.MAIL_TO || process.env.LEAD_TO)[0] || 'aplan@aplan.sk',
+          text: `${summary}\n\n—\nAplan, projektová kancelária\n+421 915 775 480 · aplan@aplan.sk · www.aplan.sk\nInformácie sú orientačné; presné posúdenie zámeru pripraví projektant po konzultácii.`,
+          html: `<div style="font-family:Arial,sans-serif;font-size:14px;color:#16181c;max-width:680px;margin:0 auto">
+            <h2 style="margin:0 0 14px">${escapeHtml(clientTitle)}</h2>
+            <div style="white-space:pre-wrap;line-height:1.65">${escapeHtml(summary)}</div>
+            <hr style="border:none;border-top:1px solid #e6e3dc;margin:22px 0">
+            <p style="color:#777;font-size:12px;line-height:1.6">Aplan, projektová kancelária<br>+421 915 775 480 · aplan@aplan.sk · www.aplan.sk<br>Informácie sú orientačné; presné posúdenie zámeru pripraví projektant po konzultácii.</p>
           </div>`
         });
         clientMail = { ok: true };
@@ -308,8 +438,14 @@ module.exports = async (req, res) => {
       }
     }
 
-    res.status(200).json({ ok: true, saved, mail: mailed, clientMail });
+    res.status(200).json({
+      ok: true,
+      saved,
+      mail: mailed,
+      clientMail,
+      attachments: lead.attachmentMeta
+    });
   } catch (e) {
-    res.status(502).json({ error: 'lead_failed', detail: e.message.slice(0, 300) });
+    res.status(502).json({ error: 'lead_failed', detail: String(e.message || e).slice(0, 300) });
   }
 };
