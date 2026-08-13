@@ -1,5 +1,5 @@
 const tls = require('tls');
-const { hasKv, kvCommand, kvSetJson, kvGetJson, isAdmin } = require('./_kv');
+const { hasKv, kvCommand, kvSetJson, kvGetJson, isAdmin, rateLimit, applyRateLimitHeaders } = require('./_kv');
 
 const INDEX_KEY = 'aplan:leads:index';
 const TTL_SECONDS = 60 * 60 * 24 * 365;
@@ -246,6 +246,19 @@ module.exports = async (req, res) => {
 
   if (req.method !== 'POST') {
     res.status(405).json({ error: 'method_not_allowed' });
+    return;
+  }
+
+  const contentLength = Number(req.headers['content-length'] || 0);
+  if (Number.isFinite(contentLength) && contentLength > 100000) {
+    res.status(413).json({ error: 'payload_too_large' });
+    return;
+  }
+
+  const requestLimit = await rateLimit(req, { scope: 'lead', limit: 5, windowSeconds: 3600 });
+  applyRateLimitHeaders(res, requestLimit);
+  if (!requestLimit.allowed) {
+    res.status(429).json({ error: 'rate_limited', retryAfter: requestLimit.retryAfter });
     return;
   }
 
