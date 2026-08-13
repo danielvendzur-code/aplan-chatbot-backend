@@ -5,11 +5,16 @@
     'application/pdf',
     'image/jpeg',
     'image/png',
-    'image/webp'
+    'image/webp',
+    'image/heic',
+    'image/heif'
   ]);
   const UP_MAX_FILES = 3;
   const UP_MAX_FILE_BYTES = 1_500_000;
+  const UP_MAX_SOURCE_IMAGE_BYTES = 8_000_000;
   const UP_MAX_TOTAL_BYTES = 2_250_000;
+  const UP_IMAGE_MAX_EDGE = 1600;
+  const UP_IMAGE_QUALITY = 0.82;
 
   const style = document.createElement('style');
   style.textContent = `
@@ -32,20 +37,19 @@
     let total = 0;
     for (const file of list) {
       if (!UP_ALLOWED_TYPES.has(file.type)) {
-        return { ok: false, message: `Súbor „${file.name}“ nemá podporovaný formát. Povolené sú PDF, JPG, PNG a WebP.` };
+        return { ok: false, message: `Súbor „${file.name}“ nemá podporovaný formát. Povolené sú PDF a bežné fotografie.` };
       }
-      if (file.size > UP_MAX_FILE_BYTES) {
-        return { ok: false, message: `Súbor „${file.name}“ je príliš veľký. Maximum je približne 1,5 MB na súbor.` };
+      const isImage = file.type.startsWith('image/');
+      const maxSource = isImage ? UP_MAX_SOURCE_IMAGE_BYTES : UP_MAX_FILE_BYTES;
+      if (file.size > maxSource) {
+        return { ok: false, message: `Súbor „${file.name}“ je príliš veľký. ${isImage ? 'Fotografia môže mať najviac približne 8 MB.' : 'PDF môže mať najviac približne 1,5 MB.'}` };
       }
       total += file.size;
-    }
-    if (total > UP_MAX_TOTAL_BYTES) {
-      return { ok: false, message: 'Prílohy sú spolu príliš veľké. Maximum je približne 2,25 MB.' };
     }
     return { ok: true, list, total };
   }
 
-  function upFileToBase64(file) {
+  function upBlobToBase64(blob, name, type) {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onerror = () => reject(new Error('file_read_failed'));
@@ -53,16 +57,68 @@
         const result = String(reader.result || '');
         const comma = result.indexOf(',');
         if (comma < 0) { reject(new Error('file_read_failed')); return; }
-        resolve({ name: file.name, type: file.type, content: result.slice(comma + 1) });
+        resolve({ name, type, size: blob.size, content: result.slice(comma + 1) });
       };
-      reader.readAsDataURL(file);
+      reader.readAsDataURL(blob);
     });
+  }
+
+  async function upDecodeImage(file) {
+    if (typeof createImageBitmap === 'function') return createImageBitmap(file);
+    return new Promise((resolve, reject) => {
+      const url = URL.createObjectURL(file);
+      const img = new Image();
+      img.onload = () => { URL.revokeObjectURL(url); resolve(img); };
+      img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('image_decode_failed')); };
+      img.src = url;
+    });
+  }
+
+  async function upCompressImage(file) {
+    const mustConvert = file.type === 'image/heic' || file.type === 'image/heif';
+    if (!mustConvert && file.size <= 1_200_000) {
+      return { blob: file, name: file.name, type: file.type };
+    }
+    const image = await upDecodeImage(file);
+    const width = image.width || image.naturalWidth;
+    const height = image.height || image.naturalHeight;
+    if (!width || !height) throw new Error('image_decode_failed');
+    const scale = Math.min(1, UP_IMAGE_MAX_EDGE / Math.max(width, height));
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.max(1, Math.round(width * scale));
+    canvas.height = Math.max(1, Math.round(height * scale));
+    const ctx = canvas.getContext('2d', { alpha: false });
+    if (!ctx) throw new Error('image_processing_failed');
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+    if (typeof image.close === 'function') image.close();
+    const blob = await new Promise((resolve, reject) => canvas.toBlob(b => b ? resolve(b) : reject(new Error('image_processing_failed')), 'image/jpeg', UP_IMAGE_QUALITY));
+    const base = file.name.replace(/\.[^.]+$/, '') || 'foto';
+    return { blob, name: `${base}.jpg`, type: 'image/jpeg' };
+  }
+
+  async function upPrepareAttachment(file) {
+    if (file.type.startsWith('image/')) {
+      const prepared = await upCompressImage(file);
+      if (prepared.blob.size > UP_MAX_FILE_BYTES) throw new Error(`Fotografiu „${file.name}“ sa nepodarilo zmenšiť pod 1,5 MB.`);
+      return upBlobToBase64(prepared.blob, prepared.name, prepared.type);
+    }
+    return upBlobToBase64(file, file.name, file.type);
   }
 
   async function upReadAttachments(input) {
     const validation = upValidateFiles(input && input.files);
     if (!validation.ok) throw new Error(validation.message);
-    return Promise.all(validation.list.map(upFileToBase64));
+    const attachments = [];
+    let total = 0;
+    for (const file of validation.list) {
+      const attachment = await upPrepareAttachment(file);
+      total += attachment.size;
+      if (total > UP_MAX_TOTAL_BYTES) throw new Error('Prílohy sú po spracovaní spolu príliš veľké. Skúste menej súborov.');
+      attachments.push({ name: attachment.name, type: attachment.type, content: attachment.content });
+    }
+    return attachments;
   }
 
   function upUpdateFileStatus(input, status) {
@@ -80,8 +136,8 @@
       return;
     }
     status.classList.add('ok');
-    const sizeKb = Math.ceil(validation.total / 1024);
-    status.textContent = `${validation.list.length} ${validation.list.length === 1 ? 'súbor' : 'súbory'} · ${sizeKb} kB: ${validation.list.map(f => f.name).join(', ')}`;
+    const sourceKb = Math.ceil(validation.total / 1024);
+    status.textContent = `${validation.list.length} ${validation.list.length === 1 ? 'súbor' : 'súbory'} · ${sourceKb} kB. Väčšie fotografie sa pred odoslaním automaticky optimalizujú.`;
   }
 
   sendLead = async function sendLeadProduction(data) {
@@ -243,7 +299,7 @@
       <div class="field"><label>Stará dokumentácia?</label><select data-f="dok"><option>Nemám</option><option>Mám čiastočne</option><option>Mám</option></select></div>
       <div class="field"><label>Krátky popis zámeru</label><textarea data-f="popis" placeholder="Čo plánujete…"></textarea></div>
       <div class="field"><label>Prílohy (voliteľné)</label>
-        <label class="upload-zone"><input data-f="files" type="file" multiple accept="application/pdf,image/jpeg,image/png,image/webp"><b>Priložiť foto alebo dokumenty</b><small>PDF, JPG, PNG alebo WebP · max. 3 súbory · spolu do 2,25 MB</small></label>
+        <label class="upload-zone"><input data-f="files" type="file" multiple accept="application/pdf,image/jpeg,image/png,image/webp,image/heic,image/heif"><b>Priložiť foto alebo dokumenty</b><small>PDF alebo foto · max. 3 súbory · veľké fotografie automaticky zmenšíme</small></label>
         <div class="file-status" data-file-status>Bez príloh.</div>
       </div>
       ${gdprField()}
