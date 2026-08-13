@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Aplan Asistent</title>
+<style>html,body{margin:0;background:transparent}</style>
+</head>
+<body>
+<script>
+(async function loadAplanWidget(){
+  try{
+    const response=await fetch('/widget.html?v=20260813-3',{cache:'no-cache'});
+    if(!response.ok) throw new Error('widget_load_failed');
+    let html=await response.text();
+    const upgrade='<script src="/production-upgrade.js?v=20260813-3"><\\/script>';
+    if(html.includes('</body>')) html=html.replace('</body>',upgrade+'</body>');
+    else html+=upgrade;
+    document.open();
+    document.write(html);
+    document.close();
+  }catch(error){
+    document.body.innerHTML='<div style="font:600 13px Arial,sans-serif;padding:18px;color:#555">Asistenta sa nepodarilo načítať. Skúste obnoviť stránku.</div>';
+  }
+})();
+</script>
+</body>
+</html>
