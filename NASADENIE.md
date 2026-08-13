@@ -6,15 +6,17 @@ Aktuálna produkčná verzia používa Vercel serverless API, Anthropic Claude, 
 
 Repo nasaď ako Vercel projekt s Framework Preset `Other`.
 
-Produkčný widget je dostupný cez:
+Produkčný embed:
 
-- `/widget.html`
 - `/embed.js`
+- `/widget-runtime.html`
+- pôvodný UI widget `/widget.html`
+- produkčné rozšírenia `/production-upgrade.js`
 
 API endpointy:
 
 - `/api/chat` — AI odpovede,
-- `/api/lead` — dopyty a klientské e-mailové zhrnutia,
+- `/api/lead` — dopyty, prílohy, balíky a klientské e-maily,
 - `/api/history` — serverová história konverzácií.
 
 ## 2. Environment variables
@@ -22,17 +24,39 @@ API endpointy:
 Vo Verceli nastav:
 
 - `ANTHROPIC_API_KEY`
-- `GMAIL_USER`
-- `GMAIL_APP_PASSWORD`
-- `MAIL_TO`
+- `GMAIL_USER=dopyt.chatbot@gmail.com`
+- `GMAIL_APP_PASSWORD=<Google App Password>`
+- `MAIL_FROM=APLAN AI asistent <dopyt.chatbot@gmail.com>` — voliteľné
+- `MAIL_TO=<e-mail Aplanu pre dopyty>`
 - `KV_REST_API_URL`
 - `KV_REST_API_TOKEN`
 - `ADMIN_KEY`
 - `RATE_LIMIT_SALT` — odporúčané samostatné náhodné tajomstvo
 
+`GMAIL_APP_PASSWORD` nesmie byť bežné heslo Gmail účtu a nesmie sa commitnúť do repozitára. Patrí iba do Vercel Environment Variables.
+
 Ak používaš Preview deployments, nastav potrebné premenné aj pre Preview.
 
-## 3. AI
+## 3. Gmail SMTP
+
+Backend používa `smtp.gmail.com:465` cez TLS.
+
+Technický odosielateľ:
+
+`dopyt.chatbot@gmail.com`
+
+Ak `GMAIL_USER` nie je nastavený, backend používa túto adresu ako default. Bez `GMAIL_APP_PASSWORD` však odosielanie zámerne zlyhá — heslo nie je a nebude v kóde.
+
+`MAIL_TO` určuje, kam Aplanu prídu:
+
+- bežné dopyty,
+- dopyty s fotografiami/PDF,
+- informácia o vygenerovanom projektovom balíku,
+- informácia o klientskom zhrnutí.
+
+Klientské kópie sa posielajú na e-mail zadaný klientom. `Reply-To` smeruje na Aplan, aby odpoveď klienta nešla na technický Gmail.
+
+## 4. AI
 
 `api/chat.js` volá Anthropic Messages API.
 
@@ -40,31 +64,35 @@ Aktuálny model:
 
 `claude-sonnet-4-6`
 
-Pre webový chat sa používa nízky effort, aby bola odozva rýchla a stále kvalitná.
-
-AI endpoint má ochranu:
+Ochrana AI endpointu:
 
 - max. 30 požiadaviek / 10 minút / IP,
 - request body max. 100 kB,
-- rate limit sa drží v KV; pri dočasnom výpadku KV sa použije in-memory fallback.
+- rate limit v KV s in-memory fallbackom.
 
-## 4. Dopyty a e-mail
+## 5. Dopyty, balíky a prílohy
 
 `api/lead.js`:
 
 1. validuje kontakt,
-2. uloží lead do KV,
-3. pošle e-mail cez Gmail SMTP,
-4. podľa potreby pošle klientovi kópiu/zhrnutie.
+2. validuje prílohy,
+3. uloží lead a iba metadata príloh do KV,
+4. pošle firemný e-mail cez Gmail SMTP,
+5. prílohy vloží priamo do e-mailu ako MIME attachments,
+6. podľa potreby pošle klientovi zhrnutie alebo Projektový štartovací balík.
 
 Ochrana:
 
 - max. 5 POST dopytov / hodinu / IP,
-- request body max. 100 kB.
+- request body max. 3,5 MB,
+- max. 3 prílohy,
+- max. 1,5 MB na finálnu prílohu,
+- max. 2,25 MB finálnych príloh spolu,
+- backend prijíma finálne PDF/JPEG/PNG/WebP.
 
-`MAIL_TO` určuje, kam chodia firemné dopyty.
+Frontend vie pred odoslaním zmenšiť väčšiu fotografiu a previesť ju na JPEG. Pri HEIC/HEIF sa konverzia vykoná iba v browseri, ktorý daný formát dokáže dekódovať.
 
-## 5. História
+## 6. História
 
 `api/history.js` ukladá konverzácie do KV.
 
@@ -73,11 +101,11 @@ Ochrana:
 - max. 180 zápisov / hodinu / IP,
 - request body max. 600 kB.
 
-## 6. Admin prístup
+## 7. Admin prístup
 
-Admin kľúč sa zámerne NESMIE posielať v query stringu URL.
+Admin kľúč sa nesmie posielať v query stringu URL.
 
-Použi jednu z hlavičiek:
+Použi:
 
 ```bash
 curl -s https://aplan-kappa.vercel.app/api/history \
@@ -91,52 +119,48 @@ curl -s https://aplan-kappa.vercel.app/api/lead \
   -H "X-Admin-Key: $ADMIN_KEY"
 ```
 
-Voliteľný parameter `limit` môže zostať v URL, napríklad:
+Voliteľný parameter `limit` môže zostať v URL:
 
 ```bash
 curl -s "https://aplan-kappa.vercel.app/api/lead?limit=25" \
   -H "Authorization: Bearer $ADMIN_KEY"
 ```
 
-Admin kľúč sa porovnáva timing-safe spôsobom.
-
-## 7. Calendly
+## 8. Calendly
 
 Widget používa reálny inline Calendly embed cez `CFG.calendly` v `widget.html`.
 
-Aktuálny link je dočasný. Pred odovzdaním musí majiteľ Aplanu:
+Aktuálny link je dočasný. Pred finálnym vložením na web musí majiteľ Aplanu:
 
 1. vytvoriť alebo použiť vlastný Calendly účet,
-2. pripojiť pracovný Google Calendar alebo Microsoft/Outlook kalendár,
-3. nastaviť, ktoré kalendáre sa kontrolujú kvôli konfliktom,
-4. nastaviť kalendár, do ktorého sa majú nové rezervácie zapisovať,
-5. vytvoriť One-on-one event type, napr. `30-minútová konzultácia`,
-6. nastaviť dostupnosť, minimálny predstih, prípadne buffer,
+2. pripojiť pracovný Google/Outlook kalendár,
+3. nastaviť kalendáre kontrolované kvôli konfliktom,
+4. nastaviť kalendár pre nové rezervácie,
+5. vytvoriť event type, napr. `30-minútová konzultácia`,
+6. nastaviť dostupnosť,
 7. poslať finálny booking link.
 
-Potom zmeň v `widget.html` iba:
+Potom zmeň v `widget.html`:
 
 ```js
 calendly: 'https://calendly.com/APLAN/konzultacia'
 ```
 
-Po rezervácii Calendly pošle event do pripojeného kalendára a widget zachytí `calendly.event_scheduled`.
+## 9. Embed na web Aplan
 
-## 8. Embed na web Aplan
-
-Na web vlož:
+Aktuálna cache-bust verzia:
 
 ```html
-<script src="https://aplan-kappa.vercel.app/embed.js" defer></script>
+<script src="https://aplan-kappa.vercel.app/embed.js?v=20260813-4" defer></script>
 ```
 
 Widget beží v izolovanom iframe a nekoliduje so štýlmi hostiteľskej stránky.
 
-## 9. Pred finálnym odovzdaním
+## 10. Pred finálnym odovzdaním
 
-Treba ešte dokončiť dve frontendové funkcie:
+Kódovo sú dopyty, klientské e-maily, Projektový štartovací balík aj prílohy zapojené. Z externých závislostí treba:
 
-- reálne odoslanie Projektového štartovacieho balíka na e-mail cez existujúci `/api/lead`,
-- reálne prílohy k dopytu; odporúčaný návrh je popísaný v `PRODUCTION_CHECKLIST.md`.
-
-Po ich dokončení urob kompletný smoke test na desktope a mobile.
+1. nastaviť Gmail App Password vo Verceli,
+2. nastaviť správne `MAIL_TO`,
+3. urobiť testovací dopyt s fotografiou a testovací klientsky e-mail,
+4. po získaní Aplan Calendly linku vymeniť dočasný link a otestovať reálnu rezerváciu.
