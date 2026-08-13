@@ -1,56 +1,111 @@
-# Aplan AI — produkčný checklist
+# Aplan Asistent — produkčný checklist
 
-Widget je jeden samostatný súbor: **`index.html`** (HTML + CSS + JS, bez závislostí).
+Tento dokument popisuje aktuálny stav nasadenej verzie. Hlavný widget je v `widget.html`, embed skript v `embed.js` a serverless API vo `api/`.
 
-## ✅ Hotové
-- Otvorenie/zatvorenie widgetu, launcher, rotujúci teaser, zamknutie scrollu na mobile.
-- Hlavička: **Domov** (menu), **Reštart** (vymaže históriu), **Zavrieť**.
-- Úvodné akčné chipy (menu) ako hlavná funkcia.
-- **Pevne pripravené postupy** (žiadne generovanie) v dátovej štruktúre `assistantFlows`:
-  Stavebné povolenie, Ohlásenie, Kolaudácia, Zmena/prístavba.
-- **Rozklikávateľné kroky** s detailom (akordeón), funguje aj po obnove histórie.
-- **História konverzácie** v `localStorage` (kľúč `aplan_ai_v1`) — prežije zatvorenie aj reload;
-  bezpečné načítanie s fallbackom pri poškodenom stave; tlačidlo reset.
-- **Dopyt** a **rezervácia konzultácie**: validácia, GDPR súhlas, stav „Odosielam…",
-  úspešná/chybová hláška, ochrana proti dvojitému odoslaniu.
-- Kalendár (typ stretnutia → termín → čas → údaje).
-- Generátor správ na úrad, checklist dokumentov, pojmy/FAQ (vyhľadávanie).
-- Rýchle kontakty (telefón, e-mail, WhatsApp) zo `CFG`.
-- Responzívne (mobil = fullscreen, desktop = širší panel).
+## ✅ Hotové a zapojené
 
-## ⚙️ Pred ostrým spustením doplniť
-1. **Údaje firmy** — v `index.html` objekt `CFG` (hľadaj `const CFG`):
-   telefón, `telefonRaw`, `whatsapp`, `email`, `web`, `gdprUrl`, `hodiny`.
-2. **Odosielanie dopytov** — nastav `CFG.leadEndpoint` na URL backendu/API.
-   - Ak je prázdne → fallback: otvorí klientovi e-mail s predvyplnenými údajmi (reálne doručí firme).
-   - Logika je vo funkcii **`sendLead(data)`** — sem napojíš fetch POST, EmailJS alebo iný systém.
-3. **Termíny v kalendári** — teraz demo (mesiac jún 2026, generované sloty vo `renderCalDays`).
-   Pre ostrú prevádzku napojiť reálny kalendár (Google/Calendly) alebo dynamické voľné termíny.
-4. **Reálne kontakty** — over telefón/WhatsApp/e-mail v `CFG`.
-5. **GDPR** — `CFG.gdprUrl` musí smerovať na platnú stránku ochrany osobných údajov.
+- Otvorenie/zatvorenie widgetu, launcher, teaser a mobilný fullscreen režim.
+- Pevné navigačné flow pre stavebné povolenie, ohlásenie, kolaudáciu a zmenu/prístavbu.
+- AI odpovede cez Anthropic API (`api/chat.js`).
+- Aktuálny AI model: `claude-sonnet-4-6` s nízkym effortom pre rýchly webový chat.
+- História konverzácie v `localStorage` a serverová história cez KV (`api/history.js`).
+- Reálny formulár dopytu cez `api/lead.js`.
+- Ukladanie leadov do KV.
+- Odosielanie leadov cez Gmail SMTP.
+- Možnosť poslať klientovi zhrnutie AI konverzácie e-mailom.
+- Reálny Calendly inline embed cez `CFG.calendly`.
+- Po udalosti `calendly.event_scheduled` widget zobrazí potvrdenie rezervácie.
+- Generátor správ na úrad/obec.
+- Checklist dokumentov.
+- Projektový štartovací balík ako interaktívny výstup v chate.
+- Rýchle kontakty: telefón, WhatsApp a dopyt.
+- GDPR checkbox pri dopytoch a e-mailovom zhrnutí.
+- Distribuovaný anti-abuse rate limiting cez KV s in-memory fallbackom:
+  - AI chat: 30 požiadaviek / 10 minút / IP,
+  - dopyty: 5 požiadaviek / hodinu / IP,
+  - história: 180 zápisov / hodinu / IP.
+- Limity veľkosti requestov na verejných API endpointoch.
+- Admin prístup bez kľúča v URL. Podporované sú iba:
+  - `Authorization: Bearer <ADMIN_KEY>`,
+  - `X-Admin-Key: <ADMIN_KEY>`.
+- Timing-safe porovnanie admin kľúča.
 
-## 🗂️ Kde sa čo upravuje (v `index.html`)
-- **Texty/kroky postupov** → objekt `assistantFlows` (`title`, `intro`, `steps[{title, shortText, detailText}]`, `finalNote`).
-- **Položky úvodného menu** → funkcia `renderMenu()` (pole `rows`).
-- **Odpovede na témy** → objekt `TT` (komunikácia s úradom, podklady, „Čo robí Aplan"…).
-- **Pojmy/FAQ/služby** → polia `CATS` a `KB`.
-- **Vzory správ na úrad** → objekt `letterDefs`.
-- **Kontaktné údaje** → objekt `CFG`.
-- **Odosielanie dopytu** → funkcia `sendLead(data)`.
-- **História/reset** → `STORE_KEY`, `saveConvo()`, `restoreConvo()`, `aiRestart()`.
+## ⚠️ Ešte treba dokončiť pred finálnym odovzdaním
 
-## 🧪 Ako otestovať formulár
-1. Otvor widget → **Potrebujem konzultáciu** (alebo **Poslať dopyt**).
-2. Skús odoslať prázdne → musia sa zvýrazniť povinné polia a vypýtať GDPR.
-3. Vyplň meno, telefón, platný e-mail, zaškrtni GDPR → **Odosielam…** → úspešná hláška.
-4. Bez `leadEndpoint`: otvorí sa e-mail s predvyplnenými údajmi.
-   S `leadEndpoint`: skontroluj, že na backend dôjde JSON s poľami z `sendLead`.
-5. Klikni odoslať viackrát rýchlo → nesmie sa odoslať dvakrát.
-6. Zavri a znovu otvor widget → konverzácia ostáva. **Reštart** ju vymaže.
-7. Otestuj na mobile aj desktope (rozklikávanie krokov, scroll, čitateľnosť).
+### 1. Calendly musí patriť Aplanu
 
-## ⚠️ Poznámky
-- Asistent zámerne **negarantuje** výsledky ani neuvádza presné ceny/lehoty —
-  pri neistom formuluje opatrne a odporúča konzultáciu. Tento tón zachovať.
-- Odpovede na postupy sú **napevno v kóde** (`assistantFlows`), nie generované —
-  aby boli vždy rovnaké a presné.
+Aktuálne je v `CFG.calendly` vložený dočasný Calendly link. Majiteľ Aplanu musí vytvoriť alebo použiť vlastný Calendly účet, pripojiť svoj pracovný Google/Outlook kalendár a vytvoriť typ stretnutia.
+
+Pošle iba finálny booking link, napríklad:
+
+`https://calendly.com/aplan/konzultacia`
+
+Potom sa v `widget.html` zmení iba hodnota `CFG.calendly`.
+
+### 2. Projektový štartovací balík — e-mail
+
+Tlačidlo „Odoslať balík na e-mail“ ešte nesmie tvrdiť, že bol e-mail odoslaný, pokiaľ neprebehne reálne API volanie.
+
+Odporúčané dokončenie:
+
+1. Vygenerovať textový súhrn balíka vo fronte.
+2. Overiť e-mail klienta a GDPR súhlas.
+3. Zavolať existujúci `/api/lead` s:
+   - `clientCopy: true`,
+   - `summary: <obsah balíka>`,
+   - predmetom `Projektový štartovací balík`.
+4. Backend pošle kópiu klientovi a informáciu Aplanu.
+5. Úspešnú hlášku zobraziť až po HTTP 200.
+6. Pri chybe zobraziť retry a priamy kontakt na Aplan.
+
+Tým sa využije existujúca mailová infraštruktúra a netreba nový provider.
+
+### 3. Prílohy k dopytu
+
+Aktuálne tlačidlo príloh je iba UI a súbory reálne neposiela.
+
+Odporúčané produkčné riešenie bez samostatného cloud storage:
+
+- reálny `<input type="file" multiple>`,
+- povoliť iba PDF, JPG/JPEG, PNG a WebP,
+- maximálne 3 súbory,
+- limit približne 2–2,5 MB spolu pred Base64 kódovaním,
+- frontend prevedie súbory na Base64 a pošle ich v JSON do `/api/lead`,
+- backend striktne skontroluje MIME typ, názov, počet aj veľkosť,
+- prílohy sa nepridávajú do KV ani histórie,
+- backend ich priloží iba do e-mailu Aplanu cez MIME `multipart/mixed`,
+- pri prekročení limitu frontend okamžite vysvetlí používateľovi, že väčšie podklady môže poslať e-mailom.
+
+Ak sa neskôr budú posielať veľké projektové PDF/DWG súbory, treba prejsť na objektové úložisko s krátkodobými signed upload URL namiesto Base64 cez serverless request.
+
+## 🔐 Produkčné environment variables
+
+Vo Verceli majú byť nastavené minimálne:
+
+- `ANTHROPIC_API_KEY`
+- `GMAIL_USER`
+- `GMAIL_APP_PASSWORD`
+- `MAIL_TO`
+- `KV_REST_API_URL`
+- `KV_REST_API_TOKEN`
+- `ADMIN_KEY`
+- `RATE_LIMIT_SALT` — odporúčané samostatné náhodné tajomstvo pre hashovanie IP rate-limit kľúčov
+
+Premenné potrebné pre preview nastav aj pre Preview environment.
+
+## 🧪 Finálny smoke test
+
+1. Otvoriť widget na desktope a mobile.
+2. Poslať bežnú AI otázku a overiť odpoveď Sonnet 4.6.
+3. Otestovať pevné úradné flow a návrat do menu.
+4. Poslať testovací dopyt a overiť doručenie e-mailu aj záznam v KV.
+5. Poslať zhrnutie AI konverzácie na klientsky e-mail.
+6. Otvoriť Calendly, vybrať reálny voľný termín a dokončiť rezerváciu.
+7. Overiť, že rezervácia vznikla v kalendári majiteľa Aplanu a že sa blokovaný čas už neponúka.
+8. Overiť 401 pri admin GET bez hlavičky.
+9. Overiť admin GET s `Authorization: Bearer <ADMIN_KEY>`.
+10. Overiť 429 po prekročení rate limitu v testovacom prostredí.
+
+## Poznámka
+
+AI odpovede sú orientačné a nesmú garantovať rozhodnutie úradu, cenu ani termín. Odborné posúdenie zostáva na projektantovi Aplanu.
