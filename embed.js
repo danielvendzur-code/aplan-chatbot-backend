@@ -1,6 +1,6 @@
 /* Aplan Asistent — embed skript.
    Vloženie na web (jeden riadok):
-   <script src="https://aplan-kappa.vercel.app/embed.js?v=20260813-3" defer></script>
+   <script src="https://aplan-kappa.vercel.app/embed.js?v=20260813-4" defer></script>
    Widget beží v izolovanom iframe — nekoliduje so štýlmi stránky. */
 (function () {
   if (window.__aplanEmbedLoaded) return;
@@ -12,7 +12,7 @@
     if (cs && cs.src) base = new URL(cs.src).origin;
   } catch (e) {}
 
-  var VER = '20260813-3';
+  var VER = '20260813-4';
   var f = document.createElement('iframe');
   f.src = base + '/widget-runtime.html?v=' + VER;
   f.title = 'Aplan Asistent';
@@ -35,7 +35,7 @@
     return window.matchMedia('(max-width:520px)').matches;
   }
 
-  var mode = 'launcher'; // launcher | teaser | open
+  var mode = 'launcher';
   function apply() {
     if (mode === 'open') {
       if (isMobile()) {
