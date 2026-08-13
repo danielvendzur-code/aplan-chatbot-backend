@@ -8,7 +8,7 @@
 
 const { formatReply } = require('../lib/reply');
 
-const MODEL = 'claude-haiku-4-5';
+const MODEL = 'claude-sonnet-4-6';
 
 const SYSTEM = `Si "Aplan Asistent" — asistent na webe projektovej (architektonicko-inžinierskej) kancelárie Aplan na Slovensku.
 
@@ -92,7 +92,13 @@ module.exports = async (req, res) => {
         'x-api-key': key,
         'anthropic-version': '2023-06-01'
       },
-      body: JSON.stringify({ model: MODEL, max_tokens: 180, system: SYSTEM, messages })
+      body: JSON.stringify({
+        model: MODEL,
+        max_tokens: 180,
+        output_config: { effort: 'low' },
+        system: SYSTEM,
+        messages
+      })
     });
     if (!r.ok) {
       const detail = await r.text();
