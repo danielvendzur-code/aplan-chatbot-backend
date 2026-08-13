@@ -7,6 +7,7 @@
 //   3) Redeploy. Endpoint bude dostupný na /api/chat.
 
 const { formatReply } = require('../lib/reply');
+const { rateLimit, applyRateLimitHeaders } = require('./_kv');
 
 const MODEL = 'claude-sonnet-4-6';
 
@@ -71,6 +72,19 @@ module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') { res.status(204).end(); return; }
   if (req.method !== 'POST') { res.status(405).json({ error: 'method_not_allowed' }); return; }
+
+  const contentLength = Number(req.headers['content-length'] || 0);
+  if (Number.isFinite(contentLength) && contentLength > 100000) {
+    res.status(413).json({ error: 'payload_too_large' });
+    return;
+  }
+
+  const limit = await rateLimit(req, { scope: 'chat', limit: 30, windowSeconds: 600 });
+  applyRateLimitHeaders(res, limit);
+  if (!limit.allowed) {
+    res.status(429).json({ error: 'rate_limited', retryAfter: limit.retryAfter });
+    return;
+  }
 
   const key = process.env.ANTHROPIC_API_KEY;
   if (!key) { res.status(500).json({ error: 'missing_api_key' }); return; }
