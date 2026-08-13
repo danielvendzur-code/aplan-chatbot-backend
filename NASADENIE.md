@@ -1,115 +1,142 @@
-# Nasadenie — Vercel (AI), Calendly, dopyty
+# Aplan Asistent — nasadenie na Vercel
 
-## 1. Vercel — aby asistent reálne odpovedal (AI)
+Aktuálna produkčná verzia používa Vercel serverless API, Anthropic Claude, KV úložisko, Gmail SMTP a Calendly.
 
-AI beží cez serverless funkciu `api/chat.js`, ktorá volá Claude API. Kľúč je
-v premennej prostredia, **nikdy nie je v kóde stránky** (bezpečné).
+## 1. Vercel
 
-Kroky:
-1. **Importuj repo do Vercelu** — vercel.com → Add New → Project → vyber tento
-   GitHub repozitár. Framework Preset: **Other** (statická stránka). Build
-   command nechaj prázdny, Output dir = root.
-2. **Pridaj API kľúč** — Project → Settings → Environment Variables:
-   - Name: `ANTHROPIC_API_KEY`
-   - Value: `sk-ant-...` (tvoj kľúč z console.anthropic.com)
-   - Environment: Production (a pokojne aj Preview)
-3. **Deploy** (alebo Redeploy po pridaní kľúča).
-4. Hotovo. Stránka beží na `https://tvoj-projekt.vercel.app`, asistent odpovedá
-   cez `https://tvoj-projekt.vercel.app/api/chat`.
+Repo nasaď ako Vercel projekt s Framework Preset `Other`.
 
-Overenie funkcie (po deploy):
-```
-curl -s https://tvoj-projekt.vercel.app/api/chat \
-  -H "content-type: application/json" \
-  -d '{"messages":[{"role":"user","content":"Čo je ohlásenie drobnej stavby?"}]}'
-```
-Má vrátiť `{"reply":"..."}`.
+Produkčný widget je dostupný cez:
 
-## Preview AI verzia — link, ktorý môžeš poslať ľuďom
+- `/widget.html`
+- `/embed.js`
 
-Kód už je pripravený na AI preview, lebo `index.html` volá relatívne endpointy:
+API endpointy:
+
 - `/api/chat` — AI odpovede,
-- `/api/lead` — odosielanie dopytov,
-- `/api/history` — ukladanie histórie.
+- `/api/lead` — dopyty a klientské e-mailové zhrnutia,
+- `/api/history` — serverová história konverzácií.
 
-Aby Preview na Verceli nepoužíval fallback bez AI, musia byť env premenné zapnuté aj pre **Preview**, nielen Production.
-
-Presný postup:
-1. Otvor Vercel projekt pre Aplan.
-2. Choď na **Settings → Environment Variables**.
-3. Pre každú premennú nastav environment **Production and Preview**:
-   - `ANTHROPIC_API_KEY`
-   - `GMAIL_USER`
-   - `GMAIL_APP_PASSWORD`
-   - `MAIL_TO`
-   - `KV_REST_API_URL`
-   - `KV_REST_API_TOKEN`
-   - `ADMIN_KEY`
-4. Ak už premenné existujú iba pre Production, otvor pri nich menu `...` a pridaj ich aj do **Preview**.
-5. Choď na **Deployments**.
-6. Otvor najnovší deployment alebo klikni **Redeploy**.
-7. Po redeploy otvor Preview URL typu:
-   `https://aplan-chatbot-backend-git-main-...vercel.app`
-   alebo URL z konkrétneho preview deploymentu.
-8. Tento Preview link môžeš poslať ľuďom.
-
-Rýchla kontrola preview linku:
-1. Otvor Preview URL.
-2. Otvor asistenta.
-3. Napíš napríklad: `Čo potrebujem pri prístavbe domu?`
-4. Ak odpovie prirodzenou AI odpoveďou, funguje `/api/chat`.
-5. Skús **Poslať dopyt**. Ak prejde potvrdenie, funguje `/api/lead`.
-
-Admin kontroly po nasadení:
-- história: `https://TVOJ-PREVIEW-LINK/api/history?key=ADMIN_KEY`
-- dopyty: `https://TVOJ-PREVIEW-LINK/api/lead?key=ADMIN_KEY`
-
-Ak Preview neodpovedá AI:
-- skontroluj, či `ANTHROPIC_API_KEY` je aj v **Preview**,
-- potom sprav **Redeploy**,
-- nepoužívaj GitHub raw/GitHack link, lebo tam endpointy `/api/...` neexistujú.
-
-**Model:** v `api/chat.js` je `MODEL = 'claude-haiku-4-5'` (rýchly a lacný pre web).
-Pre maximálnu kvalitu zmeň na `'claude-opus-4-8'` (drahšie).
-
-**Dôležité — odkiaľ sa volá AI:** v `index.html` je `CFG.chatEndpoint = '/api/chat'`.
-- Ak je stránka na Verceli, funguje to rovno.
-- Ak je widget vložený na **inej doméne** (napr. aplan.sk), nastav
-  `chatEndpoint` na **absolútnu** URL: `'https://tvoj-projekt.vercel.app/api/chat'`
-  (funkcia má povolené CORS, takže to bude fungovať).
-- Cez náhľad (githack) `/api/chat` neexistuje → asistent automaticky spadne na
-  vstavané vyhľadávanie (bez AI). Chipy a postupy fungujú stále.
-
-## 2. Calendly — reálna rezervácia (voliteľné)
-
-1. Vytvor si konto na calendly.com a typ stretnutia (napr. „Konzultácia 30 min").
-2. Skopíruj odkaz, napr. `https://calendly.com/aplan/konzultacia`.
-3. V `index.html` doplň do `CFG`:
-   ```
-   calendly: 'https://calendly.com/aplan/konzultacia'
-   ```
-4. Tým sa tlačidlo „Rezervovať konzultáciu" prepne z demo kalendára na reálny
-   Calendly (otvorí sa v novom okne). Keď `calendly` necháš prázdne, beží demo.
-
-> Prístup ti dať neviem (Calendly konto si vytvára firma/ty). Stačí mi poslať
-> odkaz a vložím ho, alebo ho vložíš sám podľa kroku 3.
-
-## 3. Dopyty a rezervácie — kam chodia
-
-Naostro je pripravený endpoint `CFG.leadEndpoint = '/api/lead'`.
-Dopyty odosiela Vercel funkcia `api/lead.js` cez Gmail app password a zároveň ich ukladá do KV.
+## 2. Environment variables
 
 Vo Verceli nastav:
-- `GMAIL_USER` — Gmail adresa odosielateľa.
-- `GMAIL_APP_PASSWORD` — app password z Google účtu.
-- `MAIL_TO` — kam majú chodiť dopyty.
-- `KV_REST_API_URL` a `KV_REST_API_TOKEN` — ukladanie dopytov a histórie.
-- `ADMIN_KEY` — kľúč na čítanie uložených dopytov/histórie.
 
-## 4. Zhrnutie premenných na vyplnenie
-- `ANTHROPIC_API_KEY` — vo Vercel env (AI).
-- `GMAIL_USER`, `GMAIL_APP_PASSWORD`, `MAIL_TO` — odosielanie dopytov.
-- `KV_REST_API_URL`, `KV_REST_API_TOKEN`, `ADMIN_KEY` — história a uložené dopyty.
-- `CFG.chatEndpoint` — `/api/chat` (alebo absolútna URL pri cudzej doméne).
-- `CFG.calendly` — odkaz na Calendly (alebo prázdne = demo kalendár).
-- `CFG.telefon/email/...` — kontakty firmy zobrazené v asistentovi.
+- `ANTHROPIC_API_KEY`
+- `GMAIL_USER`
+- `GMAIL_APP_PASSWORD`
+- `MAIL_TO`
+- `KV_REST_API_URL`
+- `KV_REST_API_TOKEN`
+- `ADMIN_KEY`
+- `RATE_LIMIT_SALT` — odporúčané samostatné náhodné tajomstvo
+
+Ak používaš Preview deployments, nastav potrebné premenné aj pre Preview.
+
+## 3. AI
+
+`api/chat.js` volá Anthropic Messages API.
+
+Aktuálny model:
+
+`claude-sonnet-4-6`
+
+Pre webový chat sa používa nízky effort, aby bola odozva rýchla a stále kvalitná.
+
+AI endpoint má ochranu:
+
+- max. 30 požiadaviek / 10 minút / IP,
+- request body max. 100 kB,
+- rate limit sa drží v KV; pri dočasnom výpadku KV sa použije in-memory fallback.
+
+## 4. Dopyty a e-mail
+
+`api/lead.js`:
+
+1. validuje kontakt,
+2. uloží lead do KV,
+3. pošle e-mail cez Gmail SMTP,
+4. podľa potreby pošle klientovi kópiu/zhrnutie.
+
+Ochrana:
+
+- max. 5 POST dopytov / hodinu / IP,
+- request body max. 100 kB.
+
+`MAIL_TO` určuje, kam chodia firemné dopyty.
+
+## 5. História
+
+`api/history.js` ukladá konverzácie do KV.
+
+Ochrana:
+
+- max. 180 zápisov / hodinu / IP,
+- request body max. 600 kB.
+
+## 6. Admin prístup
+
+Admin kľúč sa zámerne NESMIE posielať v query stringu URL.
+
+Použi jednu z hlavičiek:
+
+```bash
+curl -s https://aplan-kappa.vercel.app/api/history \
+  -H "Authorization: Bearer $ADMIN_KEY"
+```
+
+alebo:
+
+```bash
+curl -s https://aplan-kappa.vercel.app/api/lead \
+  -H "X-Admin-Key: $ADMIN_KEY"
+```
+
+Voliteľný parameter `limit` môže zostať v URL, napríklad:
+
+```bash
+curl -s "https://aplan-kappa.vercel.app/api/lead?limit=25" \
+  -H "Authorization: Bearer $ADMIN_KEY"
+```
+
+Admin kľúč sa porovnáva timing-safe spôsobom.
+
+## 7. Calendly
+
+Widget používa reálny inline Calendly embed cez `CFG.calendly` v `widget.html`.
+
+Aktuálny link je dočasný. Pred odovzdaním musí majiteľ Aplanu:
+
+1. vytvoriť alebo použiť vlastný Calendly účet,
+2. pripojiť pracovný Google Calendar alebo Microsoft/Outlook kalendár,
+3. nastaviť, ktoré kalendáre sa kontrolujú kvôli konfliktom,
+4. nastaviť kalendár, do ktorého sa majú nové rezervácie zapisovať,
+5. vytvoriť One-on-one event type, napr. `30-minútová konzultácia`,
+6. nastaviť dostupnosť, minimálny predstih, prípadne buffer,
+7. poslať finálny booking link.
+
+Potom zmeň v `widget.html` iba:
+
+```js
+calendly: 'https://calendly.com/APLAN/konzultacia'
+```
+
+Po rezervácii Calendly pošle event do pripojeného kalendára a widget zachytí `calendly.event_scheduled`.
+
+## 8. Embed na web Aplan
+
+Na web vlož:
+
+```html
+<script src="https://aplan-kappa.vercel.app/embed.js" defer></script>
+```
+
+Widget beží v izolovanom iframe a nekoliduje so štýlmi hostiteľskej stránky.
+
+## 9. Pred finálnym odovzdaním
+
+Treba ešte dokončiť dve frontendové funkcie:
+
+- reálne odoslanie Projektového štartovacieho balíka na e-mail cez existujúci `/api/lead`,
+- reálne prílohy k dopytu; odporúčaný návrh je popísaný v `PRODUCTION_CHECKLIST.md`.
+
+Po ich dokončení urob kompletný smoke test na desktope a mobile.
