@@ -1,0 +1,52 @@
+/* Aplan Asistent — finálny polish formulára dopytu. */
+[data-lead] .row2{
+  align-items:stretch;
+  gap:10px;
+}
+[data-lead] .row2>.field{
+  display:flex;
+  flex-direction:column;
+  margin-bottom:9px;
+}
+[data-lead] .row2>.field label{
+  min-height:30px;
+  display:flex;
+  align-items:flex-end;
+  line-height:1.25;
+  margin-bottom:5px;
+}
+[data-lead] .row2>.field input,
+[data-lead] .row2>.field select{
+  min-height:42px;
+  height:42px;
+}
+[data-lead] .btn-go{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  min-height:46px;
+  line-height:1.25;
+  text-align:center;
+}
+.chips .chip{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:40px;
+  line-height:1.25;
+  text-align:center;
+}
+@media(max-width:520px){
+  [data-lead] .row2{
+    grid-template-columns:1fr;
+    gap:0;
+  }
+  [data-lead] .row2>.field label{
+    min-height:0;
+  }
+  [data-lead] .row2>.field input,
+  [data-lead] .row2>.field select{
+    height:auto;
+    min-height:42px;
+  }
+}
