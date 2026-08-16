@@ -10,10 +10,13 @@
 <script>
 (async function loadAplanWidget(){
   try{
-    const response=await fetch('/widget.html?v=20260813-4',{cache:'no-cache'});
+    const response=await fetch('/widget.html?v=20260816-1',{cache:'no-cache'});
     if(!response.ok) throw new Error('widget_load_failed');
     let html=await response.text();
-    const upgrade='<script src="/production-upgrade.js?v=20260813-4"><\/script>';
+    const polish='<link rel="stylesheet" href="/ui-polish.css?v=20260816-1">';
+    const upgrade='<script src="/production-upgrade.js?v=20260816-1"><\/script>';
+    if(html.includes('</head>')) html=html.replace('</head>',polish+'</head>');
+    else html=polish+html;
     if(html.includes('</body>')) html=html.replace('</body>',upgrade+'</body>');
     else html+=upgrade;
     document.open();
